@@ -1,0 +1,27 @@
+syntax = "proto2";
+
+package ec.mipi.vx;
+
+
+enum LogLevel{
+  LOGLEVEL_START = 0;
+  FETAL = 1;
+  ERROR = 2;
+  WARNING = 3;
+  NOTICE = 4;
+  DEBUG = 5;
+  LOGLEVEL_END = 6; 
+  }
+
+
+message Conf {
+    optional string pub_channel = 1;
+    optional string logpath = 2 [default = "/userdata/LOG/vx.log"];
+    optional LogLevel loglevel = 3 [default = ERROR];
+    optional string  app_name = 4;
+    optional uint32  width = 5;
+    optional uint32  height = 6;
+    optional uint32  scale_width = 7;
+    optional uint32  scale_height = 8;
+}
+

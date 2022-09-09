@@ -1,0 +1,15 @@
+syntax = "proto2";
+
+package autoplt.radarconfig;
+
+enum RadarType{
+  ETH_MC = 0;
+  ETH_WHST = 1;
+  }
+
+message BSRadarConfig {
+  optional uint32 radar_id = 1;
+  optional RadarType radar_type = 2;
+  optional string radar_ip = 3;
+  optional uint32 radar_port = 4;
+}

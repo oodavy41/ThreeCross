@@ -1,0 +1,28 @@
+syntax = "proto2";
+
+package autoplt.transform;
+
+message ExtrinsicFile {
+    optional string frame_id = 1;
+    optional string child_frame_id = 2;
+    optional string file_path = 3;
+    optional bool enable = 4;
+}
+
+enum WorkMode {
+    rtk_mode = 0;
+    static_pose_mode = 1;
+}
+
+message GlobalConf {
+    required string global_coordinate_tf_frame_id = 1;
+    required string global_coordinate_tf_child_frame_id = 2;
+    repeated ExtrinsicFile extrinsic_file = 3;
+    required WorkMode work_mode = 4; 
+    // rtk mode
+    optional int32 utm_zone = 5;
+    optional bool  rtk_record = 6;
+    optional string record_path = 7;
+    // static pose mode
+    optional string pose_output_path = 8;
+}

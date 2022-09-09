@@ -1,0 +1,81 @@
+syntax = "proto2";
+
+package ec.interface;
+
+enum ROADOBJECTTYPE {
+    BST_TYPE_BICYCLE=0; 
+	BST_TYPE_BUS=1; 
+	BST_TYPE_CAR=2; 
+	BST_TYPE_CARAVAN=3;
+	BST_TYPE_MOTORCYCLE=4;
+	BST_TYPE_PEDESTRIAN=5;
+	BST_TYPE_RIDER=6;
+	BST_TYPE_TRUCK=7;
+	BST_TYPE_TRUCKTRAILER=8;
+	BST_TYPE_VAN=9;
+	BST_TYPE_UNKNOWN=10;
+}
+
+message Header {
+    optional uint32 seq = 1;
+    optional uint64 timestamp = 2;
+    optional string frame_id = 3;
+}
+
+message CLASSIFICATION {
+  optional ROADOBJECTTYPE obj_class = 1;
+  optional float confidence_class = 2;
+}
+
+message BBOX {
+   optional float x1 = 1;
+   optional float y1 = 2;
+   optional float x2 = 3;
+   optional float y2 = 4;
+    // left-top, right-bottom
+}
+
+// vehicle status of one timestamp
+message BSTVECHILESTATUS {
+    required BBOX bbox = 1; // network output
+	optional BBOX bboxglobal = 2; // fusion output
+
+	required float confidence = 3; // network output
+
+	optional float x_offset = 4;
+
+	repeated CLASSIFICATION classification = 5; // network output
+
+	optional float width = 6; // fusion output
+	optional float length = 7; // fusion output
+	optional float height = 8; // fusion output
+	optional float width_var = 9; // fusion output
+	optional float length_var = 10; // fusion output
+
+	optional double position_cx = 11; // fusion output
+	optional double position_cy = 12; // fusion output
+
+	optional float yaw = 13; // fusion output
+	optional float yaw_rate = 14; // fusion output
+
+	optional double velocity_x = 15; // fusion output
+	optional double velocity_y = 16; // fusion output
+
+	optional double velocity_x_var = 17;
+	optional double velocity_y_var = 18;
+
+	optional double acceleration_x = 19; // fusion output
+	optional double acceleration_y = 20; // fusion output
+}
+
+message ROADCVOBJECT {
+  required uint32  id = 1; // network output
+  required uint64 time_stamp = 2; // sys read input
+  required BSTVECHILESTATUS status = 3;
+}
+
+message ROADCV_OBJECT_LIST {
+  required int32 objectnum = 1; // total number of current detected objects
+  optional Header header = 2;
+  repeated ROADCVOBJECT objectlist = 3; // vector of objects
+}

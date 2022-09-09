@@ -1,0 +1,92 @@
+syntax = "proto2";
+
+package autoplt.display.config;
+
+enum DisplayType{
+    MULTI_LINE_ORIGINAL = 0;
+    MULTI_LINE_NET = 1;   
+    MULTI_LINE_TO3D = 2; 
+    MULTI_LINE_CVFUSION = 3; 
+    MULTI_LINE_RADAR = 4;
+    MULTI_LINE_GLOBALFUSION = 5;
+}
+
+enum LogLevel{
+  LOGLEVEL_START = 0;
+  FETAL = 1;
+  ERROR = 2;
+  WARNING = 3;
+  NOTICE = 4;
+  DEBUG = 5;
+  LOGLEVEL_END = 6; 
+  }
+
+message RadarDisplayConfig{
+    optional uint32 x_range = 1 [default = 5];
+    optional uint32 y_range = 2 [default = 30];
+    optional bool display_rcs = 3 [default = false];
+    optional bool display_rssi = 4 [default = false];
+}
+
+message ObjectDisplayConfig{
+    optional uint32 x_range = 1 [default = 5];
+    optional uint32 y_range = 2 [default = 30];
+}
+
+
+message WorldToCamera{
+  optional uint32 camera_id = 1;
+  optional string world_to_camera_file = 2;
+}
+
+message SensorResultInfo{
+  optional uint32 id = 1;
+  optional string result_channel = 2;
+}
+
+message DisplayInfoConfig{
+  optional bool show_fps_ = 1 [default = true];
+  optional bool show_object_num_ = 2 [default = true];
+  optional bool show_node_name_ = 3 [default = true];
+}
+
+message ObjectInfoConfig{
+  optional bool show_class_ = 1 [default = true];
+  optional bool show_pos_ = 2 [default = true]; 
+  optional bool show_vel_ = 3 [default = true]; 
+  optional bool show_location_ = 4 [default = true]; 
+  optional bool show_plate_ = 5 [default = true]; 
+}
+ 
+
+message DisplayConfig{
+  required DisplayType  display_type = 1;
+  optional RadarDisplayConfig display_radar = 2;
+  optional ObjectDisplayConfig display_obj3d = 3;
+  repeated WorldToCamera world_to_camera = 4;
+  repeated SensorResultInfo radar_fusion_result = 5;
+  repeated SensorResultInfo original_image = 6;
+  repeated SensorResultInfo net_detect_result = 7;
+  repeated SensorResultInfo to3d_detect_result = 8; 
+  repeated SensorResultInfo cv_fusion_result = 9;
+  repeated SensorResultInfo global_fusion_result = 10; 
+  optional string display_config_channel = 11;
+  optional bool display_bs = 12; 
+  optional bool save_video = 13; 
+  optional float video_fps = 14;
+  optional bool save_result = 15;  
+  optional string save_result_path = 16;
+  optional double save_time_interval = 17;
+  optional LogLevel display_loglevel = 18;
+  optional string display_logpath = 19;
+  optional string app_name = 20;
+  optional uint32 multi_camera_lines = 21; 
+  optional uint32 multi_camera_index = 22;
+  optional uint32 image_width = 23; 
+  optional uint32 image_height = 24;
+  optional DisplayInfoConfig display_info_config = 25;
+  optional ObjectInfoConfig object_info_config = 26;
+  optional string rtk_config_file = 27;
+  optional string fusion_param_file = 28;
+}
+

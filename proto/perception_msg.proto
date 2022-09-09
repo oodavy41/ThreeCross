@@ -1,0 +1,102 @@
+
+syntax = "proto2";
+
+package ec.PerceptionMsg;
+
+
+message Header {
+    optional uint64 timestamp = 1;  // 消息的时间戳
+    optional uint32 frame_id = 2;   // 消息的帧id
+}
+
+message BBox {
+    optional float x1 = 1;     // 检测到的对象的bounding box的左侧在camera图像像素上的坐标
+    optional float y1 = 2;     // 检测到的对象的bounding box的上侧在camera图像像素上的坐标
+    optional float x2 = 3;     // 检测到的对象的bounding box的右侧在camera图像像素上的坐标
+    optional float y2 = 4;     // 检测到的对象的bounding box的下侧在camera图像像素上的坐标
+}
+
+enum ObjectType {
+    CAR = 0;
+    BUS = 1;
+    TRUCK = 2;
+    PEDESTRIANS = 3;
+    CYCLIST = 4;
+    MOTORCYCLE = 5;
+    UNKNOWN = 6;
+}
+
+message Classification {
+    optional ObjectType type = 1;           // 类别id
+    optional float confidence_class = 2;    // 对象属于该类别的置信度
+}
+
+message Status {
+    optional BBox bbox = 1;                         // 检测到的对象在对应camera图像上的2D bounding box
+    optional int32 category_id = 2;                 // 对象的类别id，参照 Object_type
+    optional float confidence = 3;                  // 置信度
+	repeated Classification classifications = 4;    // 对象属于各类别的置信度
+
+	optional float length = 5;                      // 长
+	optional float width = 6;                       // 宽
+	optional float height = 7;                      // 高
+	optional float length_var = 8;                  // 对象的长的方差（可信度）
+	optional float width_var = 9;                   // 对象的宽的方差（可信度）
+
+	optional float position_cx = 10;                // 对象中心点在世界坐标系中地面上的x轴坐标
+	optional float position_cy = 11;                // 对象中心点在世界坐标系中地面上的y轴坐标
+	optional float yaw = 12;                        // 运动方向
+	optional float yaw_rate = 13;                   // 角速度
+	optional float velocity_x = 14;                 // 世界坐标系中速度的x分量
+	optional float velocity_y = 15;                 // 世界坐标系中速度的y分量
+	optional float velocity_x_var = 16;             // 世界坐标系中速度的x分量的方差（可信度）
+	optional float velocity_y_var = 17;             // 世界坐标系中速度的y分量的方差（可信度）
+	optional float acceleration_x = 18;             // 世界坐标系中加速度的x分量
+	optional float acceleration_y = 19;             // 世界坐标系中加速度的y分量
+
+    optional int32 lane_id = 20 [default = -1];     // 该对象当前所在的车道的id
+	optional string license_id = 21;                // 该对象的车牌
+}
+
+message ObjectEvents {
+    optional bool overspeed = 1 [default = false];          // 超速
+    optional bool underspeed = 2 [default = false];         // 低速
+    optional bool intrusion = 3 [default = false];          // 行人、动物、非机动车闯入
+    optional bool illegal_paking = 4 [default = false];     // 异常停车
+    optional bool solid_line = 5 [default = false];         // 实线变道
+    optional bool emergency_line = 6 [default = false];     // 占用应急车道
+    optional bool box_junction = 7 [default = false];       // 穿越导流区
+    optional bool small_car_lane = 8 [default = false];     // 大车占小车道
+    optional bool wrong_direction = 9 [default = false];    // 逆行
+}
+
+message Object {
+    required uint32 id = 1;                 // 检测到的对象的id
+    required uint64 time_stamp = 2;         // 该对象对应的传感器的时间戳
+    optional string sensor_type = 3;        // 检测到该对象的传感器，例如【camera 0、1…n，cv_fusion, radar 0…，lidar 0…，global_fusion 】
+    optional Status status = 4;             // 目标级检测的结果
+    optional ObjectEvents obj_events = 5;   // 事件级检测的结果
+}
+
+message TrafficFlow {
+    optional uint32 car_size = 1 [default = 0];       // 小轿车数量(car、suv)
+    optional uint32 bus_size = 2 [default = 0];       // 客车数量(bus、van)
+    optional uint32 truck_size = 3 [default = 0];     // 货车数量
+}
+
+message Lane {
+    required uint32 lane_id = 1;                        // 车道id
+    optional TrafficFlow traffic_flow = 2;              // 交通流量信息
+    optional float average_speed = 3;                   // 平均速度
+    optional bool traffic_jam = 4 [default = false];    // 交通拥堵
+    optional float headway = 5;                         // 车头时距
+    optional float time_occupancy = 6;                  // 时间占有率
+    optional float space_occupancy = 7;                 // 空间占有率
+    optional float queue_length = 8;                    // 排队长度
+}
+
+message OutMsg {
+    optional Header header = 1;     // 消息头
+    repeated Object objects = 2;    // 检测到的目标对象
+    repeated Lane lanes = 3;        // 车道信息
+}

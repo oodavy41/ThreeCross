@@ -1,5 +1,12 @@
 import * as THREE from "three";
 import { Vector3 } from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { TAARenderPass } from "three/examples/jsm/postprocessing/TAARenderPass.js";
+import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass";
+import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader";
+import { CopyShader } from "three/examples/jsm/shaders/CopyShader.js";
 import { carPool } from "../crossGen/car";
 import cross from "../crossGen/cross";
 import FPSControl from "./FPSctrl";
@@ -18,6 +25,7 @@ export default function tInit(container: HTMLDivElement) {
 
   let scene = new THREE.Scene();
   let renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
   scene.add(new THREE.AmbientLight("#fff", 0.5));
   let directLight = new THREE.DirectionalLight("#aaf", 0.6);
   directLight.lookAt(-1, -1, -1);
@@ -29,11 +37,39 @@ export default function tInit(container: HTMLDivElement) {
   //
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(cWidth, cHeight);
-  renderer.setClearColor("#003");
+  renderer.setClearColor(0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
   renderer.outputEncoding = THREE.sRGBEncoding;
   container.appendChild(renderer.domElement);
+
+  // postprocessing
+
+  let composer = new EffectComposer(renderer);
+
+  let renderPass = new RenderPass(scene, camera);
+  // renderPass.enabled = false;
+  composer.addPass(renderPass);
+
+  let taaRenderPass = new TAARenderPass(scene, camera, 0, 1.0);
+  taaRenderPass.unbiased = true;
+  // taaRenderPass.accumulate = true;
+  taaRenderPass.sampleLevel = 2;
+  // composer.addPass(taaRenderPass);
+
+  let FXAAShaderPass = new ShaderPass(FXAAShader);
+  FXAAShaderPass.uniforms["resolution"].value.set(1 / cWidth, 1 / cHeight);
+  FXAAShaderPass.renderToScreen = true;
+  // composer.addPass(FXAAShaderPass)
+
+  const smaa = new SMAAPass(
+    cWidth * renderer.getPixelRatio(),
+    cHeight * renderer.getPixelRatio()
+  );
+  composer.addPass(smaa);
+
+  var effectCopy = new ShaderPass(CopyShader);
+  composer.addPass(effectCopy);
 
   const CamFpsCtrl = new FPSControl(
     camera,
@@ -50,6 +86,7 @@ export default function tInit(container: HTMLDivElement) {
       camera.aspect = cWidth / cHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(cWidth, cHeight);
+      composer.setSize(cWidth, cHeight);
     }
   }
   let ticker = (() => {
@@ -71,24 +108,33 @@ export default function tInit(container: HTMLDivElement) {
     };
   })();
 
-  let crossGen = new cross(
-    [
-      [0.5, 10],
-      [0.5, 100],
-      [0.5, 190],
-      [0.5, 280],
-    ].map((value) => ({ roadWidth: value[0], roadAngle: value[1] }))
-  );
-  scene.add(crossGen.genThreeObj());
-  let carManager = new carPool(0.01, 100, crossGen);
-  crossGen.threeObj?.add(carManager.selfObj);
+  let crossComp: cross, carManager: carPool;
+  let onChangeRoadinfo = (info: { width: number; angle: number }[]) => {
+    if (crossComp) {
+      scene.remove(crossComp.threeObj!);
+    }
+    crossComp = new cross(
+      info.map((value) => ({ roadWidth: value.width, roadAngle: value.angle }))
+    );
+    scene.add(crossComp.genThreeObj());
+    carManager = new carPool(0.05, 100, crossComp);
+    crossComp.threeObj?.add(carManager.selfObj);
+  };
+
+  onChangeRoadinfo([
+    { width: 1.4, angle: 10 },
+    { width: 1.4, angle: 110 },
+    { width: 1.5, angle: 190 },
+    { width: 1.5, angle: 290 },
+  ]);
 
   function renderloop(T: number) {
     let delta = ticker.tick(T);
     onResize();
     CamFpsCtrl.update(delta);
     carManager.update(delta);
-    renderer.render(scene, camera);
+    // renderer.render(scene, camera);
+    composer.render();
     scene.traverse((obj) => {});
     return requestAnimationFrame(renderloop);
   }
@@ -100,5 +146,8 @@ export default function tInit(container: HTMLDivElement) {
     renderer,
     ticker,
     animation,
+    haldlers: {
+      onChangeRoadinfo,
+    },
   };
 }

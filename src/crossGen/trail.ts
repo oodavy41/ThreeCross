@@ -12,7 +12,7 @@ import {
 import cross from "./cross";
 import road from "./road";
 
-const RADIUS = 10;
+const RADIUS = 20;
 
 export default class trail {
   _trailLine!: CurvePath<Vector3>;
@@ -66,8 +66,8 @@ export default class trail {
   }
 
   trailGenrate(from: road, to: road) {
-    let fromOffset = -(Math.random() * 0.5 + 0.25) * from.width,
-      toOffset = (Math.random() * 0.5 + 0.25) * to.width;
+    let fromOffset = -(Math.random() * 0.5 + 0.25) * from.width/2,
+      toOffset = (Math.random() * 0.5 + 0.25) * to.width/2;
     let ctrlPoints = [
       from.getPoint(RADIUS, fromOffset),
       from.getPoint(from.crossDistance! + from.crossWalkDistance, fromOffset),

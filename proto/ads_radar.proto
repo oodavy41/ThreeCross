@@ -1,0 +1,55 @@
+syntax = "proto2";
+
+option optimize_for = SPEED;
+
+package autoplt;
+
+import "osi_common.proto";
+
+enum RadarObjecType{
+    Unknown = 0;
+    Pedestrain = 1;
+    Bicycle = 2;
+    LightVehicle = 3;
+    MediumVehicle = 4;
+    OversizeVehicle = 5;
+}
+
+message RadarData{
+
+    enum SensorError{
+        SENSOR_SUCCESS = 0; // SUCCESS
+        SENSOR_FAILED_NODATA = 1; // NODATA
+        SENSOR_FAILED_SIGNAL_WEAK = 2; // FAILED_SIGNAL_WEAK        
+    };
+
+    optional bool bNewObject = 1;
+    optional bool bStaticObject = 2;
+    optional bool bValidFlag = 3;
+    optional uint64 u64ObjectID = 4;
+    optional uint32 u8Count = 5;
+    optional uint32 u32CurveRadius = 6; 
+    optional uint32 u32ReturnSpeed = 7;   
+    optional float fDistance = 8;           
+    optional float fSpeed = 9;              
+    optional float fAngle = 10;              
+    optional float fXPos = 11;
+    optional float fYPos = 12;
+    optional float fXVel = 13;
+    optional float fYVel = 14;
+    optional uint64 u64TimeStamp = 15;
+    optional uint32 u32RadarID = 16;
+    optional SensorError radarError = 17;
+    optional RadarObjecType objType = 18;
+    optional uint32 u32Confidence = 19;
+}
+
+message RadarFrame{
+    repeated RadarData frame = 1;
+    optional uint64 timestamp = 2;
+    optional uint32 object_number = 3;
+    optional uint64 sensor_id = 4;
+    optional uint32 object_size = 5;
+    optional bool frame_valid = 6;
+    // todo event
+}

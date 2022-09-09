@@ -1,9 +1,24 @@
 import cross from "./cross";
-import { Vector3 } from "three";
+import {
+  BufferAttribute,
+  BufferGeometry,
+  Color,
+  Mesh,
+  MeshBasicMaterial,
+  SphereBufferGeometry,
+  Texture,
+  Vector3,
+} from "three";
 import { borderRay } from "./types";
 import { intersectPoint } from "./utils";
+import RoadMat from "./threeobj/roadMaterial";
+import WalkCrossMat from "./threeobj/walkCrossMaterial";
+import lane from "./lane";
 
-const VEC_UP = new Vector3(0, 1, 0);
+const CROSS_LANE_DIS = 0.05;
+const ROAD_LENGTH = 100;
+const LANE_WIDTH = 0.35;
+const CROSS_WALK_DIS = 0.4;
 
 export default class road {
   angle: number;
@@ -13,26 +28,29 @@ export default class road {
 
   direction!: Vector3;
   rightDir!: Vector3;
-  midLine!: Vector3;
   borderRight!: Vector3;
   borderLeft!: Vector3;
   intersectRight?: Vector3;
   intersectLeft?: Vector3;
   crossDistance?: number;
-  crossWalkDistance: number = 0.2;
+  crossWalkDistance: number = CROSS_WALK_DIS;
+  laneWidth: number = LANE_WIDTH;
+  lanes!: lane[];
 
   constructor(
     angle: number,
     width: number,
     parent: cross,
     index: number,
-    crossWalkWidth?: number
+    crossWalkWidth?: number,
+    laneWidth?: number
   ) {
     this.angle = angle;
     this.width = width;
     this.parent = parent;
     this.selfIndex = index;
     crossWalkWidth && (this.crossWalkDistance = crossWalkWidth);
+    laneWidth && (this.laneWidth = laneWidth);
     this.caculateSelfInfo();
   }
 
@@ -54,18 +72,25 @@ export default class road {
 
   caculateSelfInfo() {
     let radian = (this.angle / 180) * Math.PI;
-    this.direction = new Vector3(Math.cos(radian), 0, -Math.sin(radian));
-    this.rightDir = this.direction.clone().cross(VEC_UP).normalize();
-    this.midLine = new Vector3(0, 0, 0);
+    this.direction = new Vector3(
+      Math.cos(radian),
+      0,
+      -Math.sin(radian)
+    ).normalize();
+    this.rightDir = this.direction
+      .clone()
+      .cross(new Vector3(0, 1, 0))
+      .normalize();
+
     this.borderRight = new Vector3(0, 0, 0).add(
-      this.rightDir.clone().multiplyScalar(this.width)
+      this.rightDir.clone().multiplyScalar(this.width / 2)
     );
     this.borderLeft = new Vector3(0, 0, 0).add(
-      this.rightDir.clone().multiplyScalar(-this.width)
+      this.rightDir.clone().multiplyScalar(-this.width / 2)
     );
   }
 
-  caculateJunction() {
+  caculateSides() {
     if (!this.borderRight || !this.borderLeft) return;
     let preRoad =
         this.parent.roads[
@@ -91,9 +116,123 @@ export default class road {
       .sort()[1];
     this.borderRight = new Vector3(0, 0, 0)
       .add(this.direction.clone().multiplyScalar(this.crossDistance!))
-      .add(this.rightDir.clone().multiplyScalar(this.width));
+      .add(this.rightDir.clone().multiplyScalar(this.width / 2));
     this.borderLeft = new Vector3(0, 0, 0)
       .add(this.direction.clone().multiplyScalar(this.crossDistance!))
-      .add(this.rightDir.clone().multiplyScalar(-this.width));
+      .add(this.rightDir.clone().multiplyScalar(-this.width / 2));
+  }
+
+  initLanes(wc_rad: number) {
+    let count = Math.floor(this.width / this.laneWidth);
+    this.laneWidth = this.width / count;
+    let rightStart = this.borderRight
+      .clone()
+      .add(
+        this.direction
+          .clone()
+          .multiplyScalar(wc_rad + this.crossWalkDistance + CROSS_LANE_DIS)
+      );
+    this.lanes = [];
+    for (let i = 0; i < count; i++) {
+      let start = rightStart
+        .clone()
+        .sub(this.rightDir.clone().multiplyScalar((i + 0.5) * this.laneWidth));
+      this.lanes.push(
+        new lane(
+          this,
+          this.laneWidth,
+          start,
+          i,
+          i >= (count-1) / 2 ? "anear":  "away"
+        )
+      );
+    }
+    console.log(this.lanes)
+  }
+
+  genRoadObj(roadTex: Texture, mapScale: number, roundRad: number) {
+    let points = [this.borderRight.clone(), this.borderLeft.clone()];
+    points.push(
+      this.borderLeft
+        .clone()
+        .add(this.direction.clone().multiplyScalar(ROAD_LENGTH))
+    );
+    points.push(
+      this.borderRight
+        .clone()
+        .add(this.direction.clone().multiplyScalar(ROAD_LENGTH))
+    );
+    let position = points.reduce((retArr: number[], point) => {
+      retArr.push(...point.toArray());
+      return retArr;
+    }, []);
+    let geo = new BufferGeometry();
+    geo.setAttribute(
+      "position",
+      new BufferAttribute(new Float32Array(position), 3)
+    );
+    geo.setIndex([0, 2, 1, 0, 3, 2]);
+    let obj = new Mesh(geo, new RoadMat(roadTex, mapScale));
+    obj.add(this.genCrossWalk(roundRad));
+    this.lanes.map((v) => {
+      obj.add(v.genLinesObj(100));
+    });
+    return obj;
+  }
+
+  genCrossWalk(roundRad: number) {
+    let crossDirection = this.borderRight
+      .clone()
+      .sub(this.borderLeft.clone())
+      .normalize();
+    let points = [
+      this.borderRight
+        .clone()
+        .add(this.direction.clone().multiplyScalar(roundRad)),
+      this.borderLeft
+        .clone()
+        .add(this.direction.clone().multiplyScalar(roundRad)),
+      this.borderLeft
+        .clone()
+        .add(
+          this.direction
+            .clone()
+            .multiplyScalar(roundRad + this.crossWalkDistance)
+        ),
+      this.borderRight
+        .clone()
+        .add(
+          this.direction
+            .clone()
+            .multiplyScalar(roundRad + this.crossWalkDistance)
+        ),
+    ];
+    let position = points.reduce((retArr: number[], point) => {
+      retArr.push(...point.toArray());
+      return retArr;
+    }, []);
+    let geo = new BufferGeometry();
+    geo.setAttribute(
+      "position",
+      new BufferAttribute(new Float32Array(position), 3)
+    );
+    geo.setAttribute(
+      "crossDir",
+      new BufferAttribute(
+        new Float32Array(
+          new Array(points.length)
+            .fill(crossDirection)
+            .reduce((retArr, value) => {
+              retArr.push(...value.toArray());
+              return retArr;
+            }, [])
+        ),
+        3
+      )
+    );
+    geo.setIndex([0, 2, 1, 0, 3, 2]);
+    let obj = new Mesh(geo, new WalkCrossMat(new Color(0xffffff), 0.1));
+    obj.position.y += 0.002;
+    return obj;
   }
 }

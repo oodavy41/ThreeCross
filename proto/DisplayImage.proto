@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+package autoplt.display.image;
+
+message DisplayImage {
+  optional uint32 height = 1;  // image height, that is, number of rows
+  optional uint32 width = 2;   // image width, that is, number of columns
+  optional uint32 channelid = 3; 
+  optional string pixformat = 4;
+  optional uint32 step = 5;  // Full row length in bytes
+  optional bytes data = 6;   // actual matrix data, size is (step * rows)
+}
+

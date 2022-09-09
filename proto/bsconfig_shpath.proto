@@ -1,0 +1,36 @@
+syntax = "proto2";
+
+package ec.ShPath;
+message shPath
+{
+  optional string req_ip_sh=22;
+  optional string res_ip_sh=23;
+  optional string req_ip_3399_sh=24;
+  optional string res_ip_3399_sh=25;
+  optional string req_ntp_sh=26;
+  optional string res_ntp_sh=27;
+  optional string req_ntp_3399_sh=28;
+  optional string res_ntp_3399_sh=29;
+  optional string req_domainid_sh=30;
+  optional string res_domainid_sh=31;
+  optional string req_deviceid_sh=32;
+  optional string res_deviceid_sh=33;
+  optional string req_reboot_time_sh=34;
+  optional string res_reboot_time_sh=35;
+  optional string req_device_info_sh=36;
+  optional string autostartup_sh=37;
+  optional string req_ota_sh=38;
+  optional string res_ota_sh=39;
+  optional string upgrade_ota=40;
+  optional string req_radar_sh=41;
+  optional string res_radar_sh=42;
+  optional string req_log_sh=43;
+  optional string config_log_type=44;
+  optional string req_log_list_sh=45;
+  optional string get_log_type=46;
+  optional string export_conf_sh=47;
+  optional string import_conf_sh=48;
+  optional string get_roi_switch_sh=49;
+  optional string post_roi_switch_sh=50;
+  optional string set_radar_channel_sh=51;
+}

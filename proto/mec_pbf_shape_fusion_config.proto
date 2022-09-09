@@ -1,0 +1,9 @@
+syntax = "proto2";
+
+package autoplt.fusion.pbfshapefusion;
+
+message Config {
+    optional bool enable_radar = 1[default = false];
+    optional bool enable_cout = 2[default = false];
+}
+

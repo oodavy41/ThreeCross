@@ -9,3 +9,13 @@
   height: 100%;
   background-color: gray;
 }
+
+.UI {
+  position: absolute;
+  z-index: 999;
+  top:10px;
+  left:10px;
+  font-weight: 500;
+  color:aliceblue;
+  background-color: rgba(233, 233, 233, 0.2);
+}

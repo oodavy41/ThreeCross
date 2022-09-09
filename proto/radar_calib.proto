@@ -1,0 +1,10 @@
+syntax = "proto2";
+
+package ec.radar;
+
+message RadarCalibConfig {
+  optional double radar_orientation = 1 [default = 0];
+  optional double radar_translation_x = 2 [default = 0];
+  optional double radar_translation_y = 3 [default = 0];
+  optional bool use_radar_extrinsic = 4 [default = false];
+}

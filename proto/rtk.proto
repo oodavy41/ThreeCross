@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+package ec.rsu;
+
+message Rtk {
+    optional string rsu_ip = 1;
+    optional uint32 rsu_port = 2;
+    optional double lat = 3;
+    optional double longt = 4;
+    optional double alt = 5;
+}
+

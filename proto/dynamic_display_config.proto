@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package mec.display.config;
+
+
+message DynamicControl{
+  optional string control_message_channel = 1;
+  optional string display_config_file = 2;
+  optional string node_name = 3;
+}
+

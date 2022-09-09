@@ -1,0 +1,109 @@
+syntax = "proto2";
+
+package autoplt.fusion;
+
+import "transform.proto";
+
+message BBox2D{
+  required int32 xmin = 1;  // in pixels.
+  required int32 ymin = 2;  // in pixels.
+  required int32 xmax = 3;  // in pixels.
+  required int32 ymax = 4;  // in pixels.
+  required float shape_confidence = 5;
+}
+
+message BBox3D{
+  required float length = 1; // [m]
+  required float width = 2;  // [m]
+  required float height = 3; // [m]
+  required float shape_confidence = 4;
+}
+
+message Vector3D{
+  required double x = 1;
+  required double y = 2;
+  required double z = 3;
+  repeated double covariance = 4; // row-majored 3x3 matrix
+}
+
+message Vector1D{
+  required float element = 1;
+  required float variance = 2;
+}
+
+enum ObjectClass {
+	BST_TYPE_CAR=0; 
+	BST_TYPE_CARSUV=1;
+	BST_TYPE_VAN=2;
+	BST_TYPE_BUS=3; 
+	BST_TYPE_TRUCK=4;
+	BST_TYPE_CARSPECIAL=5;
+	BST_TYPE_MOTORCYCLE=6;
+	BST_TYPE_BICYCLE=7; 
+	BST_TYPE_RIDER=8;
+	BST_TYPE_TRICYCLE=9; 
+	BST_TYPE_PEDESTRIAN=10;
+	BST_TYPE_TRAFFICSIGNS=11;
+	BST_TYPE_TRAFFICCONE=12;
+	BST_TYPE_UNKNOWN=13;
+};
+
+message Class1D{
+  enum ObjectSubClass {
+	BST_TYPE_CAR=0; 
+	BST_TYPE_CARSUV=1;
+	BST_TYPE_VAN=2;
+	BST_TYPE_BUS=3; 
+	BST_TYPE_TRUCK=4;
+	BST_TYPE_CARSPECIAL=5;
+	BST_TYPE_MOTORCYCLE=6;
+	BST_TYPE_BICYCLE=7; 
+	BST_TYPE_RIDER=8;
+	BST_TYPE_TRICYCLE=9; 
+	BST_TYPE_PEDESTRIAN=10;
+	BST_TYPE_TRAFFICSIGNS=11;
+	BST_TYPE_TRAFFICCONE=12;
+	BST_TYPE_UNKNOWN=13;
+  };
+  required ObjectClass object_class = 1;
+  repeated float class_confidence = 2;
+  required ObjectSubClass object_sub_class = 3;
+  repeated float sub_class_confidence = 4;
+}
+
+message PerceptionObject {
+  required int32 id = 1;  // object ID.
+  optional string sensor_id = 2; 
+
+  optional Vector3D position = 3;  // center position in vehicle coordinate [m]
+  optional Vector3D velocity = 4;  // center velocity in vehicle coordinate [m/s]
+  optional Vector3D acceleration = 5; // acceleration in vehicle coordinate [m/s^2]
+  optional Vector1D heading = 6;      // heading in vehicle coordinate [rad]
+
+  optional BBox3D size = 7;
+  optional BBox2D bbox2d = 8;
+
+  required double tracking_time = 9; // lastest time of an obstacle  detection [s]
+  optional float existence_prob = 10 [default = 1]; // existence probability
+
+  optional Class1D object_class = 11;
+
+  required double status_time = 12; // object perception time
+}
+
+enum ObjectsType {
+    UNKNOWN_TYPE = 0;
+    FUSION = 1;
+    CAMERA = 2;
+    RADAR = 3;
+    LIDAR = 4;
+    ULTRASONIC = 5;
+};
+
+message FusionObjects {
+  optional string       fusion_sensor = 1;//sensor name
+  required ObjectsType  object_type = 2;
+  required double      timestamp = 3;
+  optional autoplt.transform.Transform   object_trans = 4;
+  repeated PerceptionObject object = 5;
+}

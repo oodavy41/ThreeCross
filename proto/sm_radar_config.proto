@@ -1,0 +1,27 @@
+syntax = "proto2";
+
+package ec.radar;
+
+enum LogLevel{
+  LOGLEVEL_START = 0;
+  FETAL = 1;
+  ERROR = 2;
+  WARNING = 3;
+  NOTICE = 4;
+  DEBUG = 5;
+  LOGLEVEL_END = 6; 
+  }
+
+message RadarOutChannel{
+  optional string radar_name = 1;
+  optional string radar_object_channel = 2;
+}
+
+message SMRadarConfig {
+  optional bool enable_cout = 1 [default = false];
+  optional LogLevel radar_loglevel = 2;
+  optional string radar_logpath = 3;
+  optional string radar_app_name  = 4;
+  optional string radar_sensor_config_path_  = 5;
+  repeated RadarOutChannel radar_out_msg = 6;
+}

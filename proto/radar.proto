@@ -1,0 +1,279 @@
+syntax = "proto2";
+
+package ec.radar;
+
+message RadarCanfd{
+	optional Header header = 1;
+	optional uint32 id = 2;
+	optional uint32 length = 3; 	     
+	optional bytes data = 4;
+}
+
+enum ROADOBJECTTYPE {
+    BST_TYPE_BICYCLE=0; 
+	BST_TYPE_BUS=1; 
+	BST_TYPE_CAR=2; 
+	BST_TYPE_CARAVAN=3;
+	BST_TYPE_MOTORCYCLE=4;
+	BST_TYPE_PEDESTRIAN=5;
+	BST_TYPE_RIDER=6;
+	BST_TYPE_TRUCK=7;
+	BST_TYPE_TRUCKTRAILER=8;
+	BST_TYPE_VAN=9;
+	BST_TYPE_UNKNOWN=10;
+}
+
+message Header {
+    optional uint32 seq = 1;
+    optional uint64 timestamp = 2;
+    optional string frame_id = 3;
+}
+
+message CLASSIFICATION {
+  optional string obj_class = 1;
+  optional float confidence_class = 2;
+}
+
+message BBOX {
+   optional float x1 = 1;
+   optional float y1 = 2;
+   optional float x2 = 3;
+   optional float y2 = 4;
+    // left-top, right-bottom
+}
+
+message Time {
+	optional int32 sec = 1;
+	optional int32 nsec = 2;
+}
+
+// vehicle status of one timestamp
+message BSTVECHILESTATUS {
+        optional BBOX bbox = 1; // network output
+	optional BBOX bboxglobal = 2; // fusion output
+
+	optional int64 radar_id = 3;
+	optional float radar_id_p = 4;
+
+	optional int64 cd_id = 5; 
+	optional float cv_id_p = 6;
+
+	optional float confidence = 7; // network output
+
+	optional float x_offset = 8;
+
+	repeated CLASSIFICATION classification = 9; // network output
+
+	optional float width = 10; // fusion output
+	optional float length = 11; // fusion output
+	optional float height = 12; // fusion output
+	optional float width_var = 13; // fusion output
+	optional float length_var = 14; // fusion output
+	optional float height_var = 15;
+
+	optional double position_cx = 16; // fusion output
+	optional double position_cy = 17; // fusion output
+
+	optional float yaw = 18; // fusion output
+	optional float yaw_rate = 19; // fusion output
+
+	optional double velocity_x = 20; // fusion output
+	optional double velocity_y = 21; // fusion output
+
+	optional double velocity_x_var = 22;
+	optional double velocity_y_var = 23;
+
+	optional double acceleration_x = 24; // fusion output
+	optional double acceleration_y = 25; // fusion output
+}
+
+message ROADCVOBJECT {
+  required uint32  id = 1; // network output
+  required Time time_stamp = 2; // sys read input
+  required BSTVECHILESTATUS status = 3;
+}
+
+message ROADCV_OBJECT_LIST {
+  optional Header header = 1;
+  required int32 objectnum = 2; // total number of current detected objects
+  repeated ROADCVOBJECT objectlist = 3; // vector of objects
+}
+
+message LocationInterface{
+	optional Header header = 1;
+	optional float radar_ecu_timestamp = 2;
+	repeated Location raw_locations = 3;
+	optional SensingState sensing_state = 4;
+}
+
+enum MeasurementState{
+	MEASUREMENT_STATE_INVALID = 0;
+	MEASUREMENT_STATE_VALID = 1;
+}
+
+enum OperationMode{
+	OPERATION_MODE_MEASUREMENT = 20;
+}
+
+message Blindness{
+	// Number of detection threshold bins
+	optional uint32 num_bins_detection_threshold = 1;
+	optional bool num_bins_detection_thresold_valid = 2;
+
+	// Two-Target-Rate indicator
+	optional uint32 two_target_rate_indicator = 3;
+	optional bool two_target_rate_indicator_valid = 4;
+
+	// RCS model deviation for moving objects
+	optional uint32 rcs_moving_object_model_deviation_indicator = 5;
+	optional bool rcs_moving_object_model_deviation_indicator_valid = 6;
+
+	// Azimuth model deviation for moving objects
+	optional uint32 azimuth_moving_object_model_deviation = 7;
+	optional bool azimuth_moving_object_model_deviation_valid = 8;
+
+	// Azimuth model deviation for static objects
+	optional uint32 azimuth_static_object_model_deviation = 9;
+	optional bool azimuth_static_object_model_deviation_valid = 10;
+}
+
+message FieldOfView{
+	// Azimuth FoV
+	repeated float maximum_fov_range_azimuth = 1; //25
+	repeated float fov_azimuth_angles = 2; //25
+
+	// Elevation FoV
+	repeated float range_scaling_elevation = 3; //11
+	repeated float fov_elevation_angles = 4; //11
+}
+
+enum IndicatorStatus{
+	// Flags for indicator_status
+	INDICATOR_STATUS_INVALID = 0;
+	INDICATOR_STATUS_VALID_NO_INTERFERENCE = 1;
+	INDICATOR_STATUS_VALID_WITH_INTERFERENCE = 2;
+}
+
+message InterferenceStatus{
+	optional IndicatorStatus indicator_status = 1;
+	optional float field_of_view_reduction = 2;
+}
+
+enum EstimationStatus{
+	// Flags for estimation_status
+	ESTIMATION_STATUS_VALID = 0;
+}
+
+message Misalignment{
+	optional EstimationStatus estimation_status = 1;
+
+	// Azimuth angle
+	optional float azimuth_angle_misalignment = 2;
+	optional float azimuth_angle_misalignment_variance = 3;
+
+	// Elevation angle
+	optional float elevation_angle_misalignment = 4;
+	optional float elevation_angle_misalignment_variance = 5;
+}
+
+message SensingState{
+
+	optional OperationMode operation_mode = 1;
+	optional MeasurementState measurement_state = 2;
+
+	// distance range scaling factor for FoV from modulation
+	//            (distance degradation due to thermal degradation, noise increase)
+	//            1: full range
+	//            0.93: range reduction if 75% of ramps are used
+	//            0.84: range reduction if 50% of ramps are used
+	optional float thermal_degredation_factor = 3;
+
+	optional Blindness blindness = 4;
+	optional FieldOfView field_of_view = 5;
+	optional InterferenceStatus interference_status = 6;
+	optional Misalignment misalignment = 7;
+	optional ModulationPerformance modulation_performance = 8; 
+}
+
+message ModulationPerformance{
+	optional uint32 active_detection_measurement_program_id = 1;
+	optional uint32 active_modulation_id = 2;
+
+	optional float fov_distance_range_scaling_factor = 3;
+
+	// Distance
+	optional float distance_precision = 4;
+	optional float distance_seperability = 5;
+	optional float distance_minimum_value = 6;
+	optional float distance_maximum_value = 7;
+
+	// Velocity
+	optional float velocity_precision = 8;
+	optional float velocity_seperability = 9;
+	optional float velocity_minimum_value = 10;
+	optional float velocity_maximum_value = 11;
+
+	optional float distance_velocity_covariance = 12;
+}
+
+enum MeasurementStatus{
+	MEASUREMENT_STATUS_BITMASK_MEASURED = 1;
+	MEASUREMENT_STATUS_BITMASK_MULTI_TARGET_AZIMUTH = 2;
+	MEASUREMENT_STATUS_BITMASK_MULTI_TARGET_ELEVATION = 4;
+}
+
+message Location{
+	// Radial distance [m]
+	optional float radial_distance = 1;
+	
+	// Radial distance variance [m^2]
+	optional float radial_distance_variance = 2;
+
+	// Spectral spread in distance
+	optional float radial_distance_spread = 3;
+
+	// Relative radial velocity [m/s]
+	optional float radial_velocity = 4;
+
+	// Variance of radial velocity [m^2/s^2]
+	optional float radial_velocity_variance = 5;
+
+	// Spectral spread in velocity
+	optional float radial_velocity_spread = 6;
+
+	// Covariance of radial distance and velocity [m^2/s]
+	optional float radial_distance_velocity_covariance = 7;
+
+	// Quality of velocity resolution processing in [0,1]
+	optional float radial_distance_velocity_quality = 8;
+
+	// Orientation of spectral spread in distance and velocity 
+	optional float radial_distance_velocity_spread_orientation = 9;
+
+	// Elevation angle (phi) [rad]
+	optional float elevation_angle = 10;
+
+	// Quality of elevation angle in [0,1]
+	optional float elevation_angle_quality = 11;
+
+	// Variance of elevation angles [rad^2]
+	optional float elevation_angle_variance = 12;
+
+	// Azimuth angle (theta) [rad]
+	optional float azimuth_angle = 13;
+
+	// Quality of azimuth angle in [0,1]
+	optional float azimuth_angle_quality = 14;
+
+	// Variance of azimuth angles [rad^2]
+	optional float azimuth_angle_variance = 15;
+
+	// Radar cross section [dBm2]
+	optional float rcs = 16;
+
+	// Received Signal Strength Indication (RSSI) [no unit]
+	optional float rssi = 17;
+
+	// Measurement status
+	optional MeasurementStatus measurement_status = 18;
+}

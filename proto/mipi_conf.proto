@@ -1,0 +1,38 @@
+syntax = "proto2";
+
+package ec.mipi;
+
+
+enum LogLevel{
+  LOGLEVEL_START = 0;
+  FETAL = 1;
+  ERROR = 2;
+  WARNING = 3;
+  NOTICE = 4;
+  DEBUG = 5;
+  LOGLEVEL_END = 6; 
+  }
+
+
+message Conf {
+    optional bool data_img = 1;
+    optional string ec_img_channel = 2;
+    optional string record_img_channel = 3;
+    optional bool compress = 4;
+    optional bool ros_img_raw = 5;
+    optional bool ros_img_compress = 6;
+    optional string logpath = 7 [default = "/userdata/LOG/mipi.log"];
+    optional LogLevel loglevel = 8 [default = ERROR];
+    optional bool camera8 = 9;
+    optional bool camera9 = 10;
+    optional bool camera10 = 11;
+    optional bool camera11 = 12;
+    optional int32 image_width = 13;
+    optional int32 image_height = 14;
+    optional int32 view_index = 15; 
+	  optional int32 view_type = 16;
+    optional int32 camera_num = 17;
+    optional int32 scale_width = 18;
+    optional int32 scale_height = 19;
+
+}

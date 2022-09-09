@@ -1,0 +1,127 @@
+///////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                           //
+//  This file contains proprietary information that is the sole intellectual property        //
+//  of Black Sesame Technologies, Inc. and its affiliates.  No portions of this material     //
+//  may be reproduced in any form without the written permission of:                         //   
+//                                                                                           //
+//  Black Sesame Technologies, Inc. and its affiliates                                       //
+//  2255 Martin Ave. Suite D                                                                 //   
+//  Santa Clara, CA  95050                                                                   //
+//  Copyright \@2018: all right reserved.                                                    //
+//                                                                                           //
+//  Notice:                                                                                  //
+//                                                                                           //
+//  You are running an EVALUATION distribution of the neural network tools provided by       //
+//  Black Sesame Technologies, Inc. under NDA.                                               //
+//  This copy may NOT be used in production or distributed to any third party.               //
+//  For distribution or production, further Software License Agreement is optional.          //
+//                                                                                           //
+///////////////////////////////////////////////////////////////////////////////////////////////
+syntax = "proto2";
+
+package ec.camera_net_config;
+
+message CameraConfig{
+  //
+  optional uint32 group_id = 1;
+  optional uint32 camera_id = 2;
+
+  optional string shared_config_file = 3;
+
+  // to3d parameters
+  optional int32 stright_x1 = 74;
+  optional int32 stright_y1 = 75;
+  optional int32 stright_x2 = 76;
+  optional int32 stright_y2 = 77;
+
+  optional string main_camera_calib = 6;
+  optional string tele2wide_calib = 7;
+
+  optional string calib_img = 10;
+}
+
+
+message SGNodeConfig{
+  enum LogLevel
+  {
+    LOGLEVEL_START = 0;
+    FETAL = 1;
+    ERROR = 2;
+    WARNING = 3;
+    NOTICE = 4;
+    DEBUG = 5;
+    LOGLEVEL_END = 6; 
+  }
+  
+  // recieved image size
+  optional int32 img_width = 5;
+  optional int32 img_height = 6;
+  // net input size
+  optional int32 net_width = 7;
+  optional int32 net_height = 8;
+  // license plate model input size
+  optional int32 plate_width = 11;
+  optional int32 plate_height = 12;
+
+
+  // net model path
+  optional string npu_model_path = 15;
+  optional string dsp_model_path = 16;
+  
+  // for save result
+  optional bool need_save_result = 17;
+  optional string save_dir = 18;
+
+
+  //
+  optional LogLevel loglevel = 22;
+  optional string logpath = 23;
+  optional string app_name = 24;
+
+  // 
+  optional bool need_3dbox = 34;
+  optional bool need_obj_log = 36 [default = false];
+
+
+  // net parameters
+  optional float cls_threshold = 40 [default = 0.5];
+  optional float nms_threshold = 41 [default = 0.3];
+  optional bool use_roi = 42;
+  optional string roi_file = 43;
+
+  // plate parameters
+  optional float plate_threshold = 44;
+
+  // tracker parameters
+  optional int32 track_max_age = 50;
+  optional uint32 max_frame_diff = 51;
+  optional bool along_y = 52;
+  optional bool use_realworld = 53 [default = true];
+  optional bool use_vel_filter = 54;
+  optional float vel_scale = 55;
+
+  // fusion parameters
+
+  //
+  optional string display_conf_path = 81;
+
+  // channels
+  optional string net_obj_channel = 200;
+
+  optional string plate_channel = 203;
+
+  optional string track_channel = 206;
+
+  optional string cvfusion_channel = 210;
+
+  optional string diplay_channel = 211;
+
+  optional string recv_channel = 212;
+
+  optional string recv_conf_path = 213;
+
+  optional bool use_mipi = 214 [default = false];
+
+  optional bool use_plate = 215 [default = true];
+}
+

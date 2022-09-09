@@ -1,0 +1,195 @@
+syntax = "proto2";
+
+package ec.perception;
+
+
+// 用于标记消息发出节点是否正常工作
+enum MsgStatus {
+	GOOD = 0;   // 节点工作正常，且能从上游节点接收正常数据
+	MED = 1;
+	ERROR = 2;  // 发出消息的节点无法正常工作，或者接收不到上游节点发送的正常数据
+}
+// 目标级感知的内部消息的消息头，包含消息的基础信息
+message Header {
+  optional uint32 frame_id = 1  [default = 0];       // 帧id。注意！可能来自上游传感器，也可能来自消息的发出节点，规则自定。主要用于调试，谨慎用于算法
+  optional uint64 timestamp = 2  [default = 0];     // 时间戳。注意！可能来自上游传感器，也可能来自消息的发出节点。主要用于调试，谨慎用于算法
+  optional int32 sensor_id = 3  [default = -1];     // 源传感器的id。表示消息发出节点主要处理哪路传感器。如果处理多路传感器，基于主传感器，或整体置信度更高的传感器等策略决定
+  optional MsgStatus status = 4  [default = GOOD];  // 用于标记消息发出节点是否正常工作
+}
+
+
+// 标记目标的测量状态
+enum MeasurementStatus {
+  MEASURED = 0;   // 目标的信息是被检测到的
+  PREDICTED = 1;  // 目标的信息是基于先前的信息预测出来的，跟丢的可信预测
+  NEW = 2;
+  INVALID = 3;    // 该目标的信息不可用
+}
+
+// 感知目标的类别
+enum CategoryId {
+	CAR = 0; 
+	CAR_SUV = 1;
+	VAN = 2;
+	BUS = 3; 
+	TRUCK = 4;
+	CAR_SPECIAL = 5;
+	MOTORCYCLE = 6;
+	BICYCLE = 7; 
+	RIDER = 8;
+	TRICYCLE = 9; 
+	PEDESTRIAN = 10;
+	TRAFFIC_SIGNS = 11; // 交通灯
+	TRAFFIC_CONE = 12;
+	UNKNOWN = 13;
+  PLATE = 14;         // 车牌
+  FIRE = 15;
+  SMOKE =16;
+}
+
+// 图像坐标上，目标的朝向类别。注意！是图像坐标上的
+enum OrientationType {
+	FRONT = 0; 
+	REAR = 1;
+	LEFT = 2;
+	RIGHT = 3; 
+	LEFT_FRONT = 4;
+	RIGHT_FRONT = 5;
+	LEFT_REAR = 6;
+	RIGHT_REAR = 7;
+}
+
+// 车灯状态
+enum CarLightStatus {
+	LEFT_SIGNAL = 0;    // 左转
+	RIGHT_SIGNAL = 1;   // 右转
+	HAZARD_SIGNAL = 2;  // 危险警报灯 / 双闪
+	BRAKE_LIGHT = 3;    // 刹车
+  BACKUP_LIGHT = 4;   // 倒车
+	OTHER = 5;
+}
+
+// 图像坐标，目标2d bounding box
+message Box2d {
+  optional float x1 = 1  [default = 0]; // 左上角x
+  optional float y1 = 2  [default = 0]; // 左上角y
+  optional float x2 = 3  [default = 0]; // 右下角x
+  optional float y2 = 4  [default = 0]; // 右下角y
+}
+
+// 图像坐标，目标3d bounding box
+message Box3d {
+  optional float up_x1 = 1  [default = 0];
+  optional float up_y1 = 2  [default = 0];
+  optional float up_x2 = 3  [default = 0];
+  optional float up_y2 = 4  [default = 0];
+  optional float up_x3 = 5  [default = 0];
+  optional float up_y3 = 6  [default = 0];
+  optional float up_x4 = 7  [default = 0]; 
+  optional float up_y4 = 8  [default = 0];  
+  optional float bottom_x1 = 9  [default = 0];
+  optional float bottom_y1 = 10  [default = 0];
+  optional float bottom_x2 = 11  [default = 0];
+  optional float bottom_y2 = 12  [default = 0];
+  optional float bottom_x3 = 13  [default = 0];
+  optional float bottom_y3 = 14  [default = 0];
+  optional float bottom_x4 = 15  [default = 0]; 
+  optional float bottom_y4 = 16  [default = 0]; 
+}
+
+// 图像坐标，用于3d信息计算的目标参考点
+message BoxRef3d {
+  optional float angle_x = 1  [default = 0];
+  optional float angle_y = 2  [default = 0];
+  optional float front_x = 3  [default = 0];
+  optional float front_y = 4  [default = 0];
+  optional float rear_x = 5  [default = 0];
+  optional float rear_y = 6  [default = 0];
+}
+
+// 图像坐标，目标框信息
+message BBox {
+  optional Box2d box_2d = 1;                    // 图像坐标，目标2d bounding box
+  optional Box3d box_3d = 2;                    // 图像坐标，目标3d bounding box
+  optional BoxRef3d box_ref = 3;                // 图像坐标，用于3d信息计算的目标参考点
+  optional float box_score = 4  [default = 0];  // 目标框的可信度，值越大越可信，规则由算法自定
+}
+
+// 车牌上的单个字符对应的id，以及置信度
+message Letter {
+  optional int32 character_id = 1  [default = -1];  // 字符对应的id号
+  optional float score = 2  [default = 0];          // 置信度
+}
+
+// 车牌信息
+message LicensePlate {
+  optional string license_id = 1  [default = ""]; // 完整车牌
+  optional float confidence = 2  [default = 0];   // 整个车牌识别结果的置信度
+  optional Box2d plate_box = 3;                   // 图像坐标上车牌的bounding box
+  repeated Letter letters = 4;                    // 车牌上的单个字符对应的id，以及置信度
+  optional bytes img_data = 5;                    // 单个车牌图像数据，用于车牌识别模型的输入
+}
+
+// 感知到的目标的信息
+message Object {
+	optional uint32 track_id = 1  [default = 0];            // 目标的id
+  optional uint64 timestamp = 2  [default = 0];           // 用于检测该目标的源传感器数据的时间戳。注意！与 Header 的 timestamp 不一定相同
+  optional int32 sensor_id = 3  [default = -1];           // 源传感器的id
+  optional uint32 age = 4  [default = 1];                 // 存在时间（被感知到的次数）
+  optional MeasurementStatus measurement = 5 [default = NEW];// 目标的测量状态（被检测到的 / 跟丢的基于预测的 / 不可用的）
+
+  optional CategoryId category_id = 10 [default = UNKNOWN];// 目标最可能属于的类别
+  optional float confidence = 11  [default = 0];          // 目标类别的置信度
+  repeated float all_confidence = 12;                     // 目标各类别的置信度
+
+  optional BBox bbox = 20;                                // 图像坐标，目标框信息
+
+  optional float position_x = 30  [default = 0];          // 世界坐标下的x位置坐标
+  optional float position_y = 31  [default = 0];          // 世界坐标下的y位置坐标
+  optional float position_score = 32  [default = 0];      // 位置坐标的可信度，值越大越可信
+
+  optional OrientationType orientation_type = 40 [default = FRONT];// 图像坐标上，目标的朝向类别。注意！是图像坐标上的
+  optional float orientation_score = 41  [default = 0];   // 朝向的可信度，值越大越可信
+
+  optional float velocity_x = 50  [default = 0];          // 速度在世界坐标x分量上的大小，有正负
+	optional float velocity_y = 51  [default = 0];          // 速度在世界坐标y分量上的大小，有正负
+  optional float velocity_score = 52  [default = 0];      // 速度的可信度，值越大越可信
+
+  optional float acceleration_x = 61  [default = 0];      // 加速度在世界坐标x分量上的大小，有正负
+	optional float acceleration_y = 62  [default = 0];      // 加速度在世界坐标y分量上的大小，有正负
+  optional float acceleration_score = 63  [default = 0];  // 加速度的可信度，值越大越可信
+
+  optional float length = 70  [default = 0];              // 目标的长
+	optional float width = 71  [default = 0];               // 宽
+	optional float height = 72  [default = 0];              // 高
+  optional float dimension_score = 73  [default = 0];     // 三维尺寸的可信度，值越大越可信
+
+  optional CarLightStatus light_status = 80 [default = OTHER];// 车灯状态
+  optional float light_score = 81  [default = 0];         // 车灯状态的可信度，值越大越可信
+
+  optional int32 lane_id = 90  [default = 0];             // 目标所在的车道的id
+  optional float lane_id_score = 91  [default = 0];       // 目标所在的车道的id可信度，值越大越可信
+
+  optional LicensePlate license_plate = 100;              // 车牌信息
+
+}
+
+
+// 用于目标检测模型的输入图像数据
+message SrcImage {
+  optional uint32 height = 1  [default = 0];  // 图像的高
+  optional uint32 width = 2  [default = 0];   // 图像的宽
+  optional uint32 node_id = 3  [default = 0]; // 1:net 2:3d 3:cvfusion
+  optional float fps = 4  [default = 0];      // 帧率
+  optional uint32 step = 5  [default = 0];    // Full row length in bytes
+  optional bytes data = 6;                    // actual matrix data, size is (step * rows)
+}
+
+
+// 目标级感知的内部消息，包含消息头、感知到的每个目标、用于感知的图像数据
+message ObjectMsg {
+  optional Header header = 1;                     // 消息头，包含消息的基础信息
+  repeated Object objectlist = 2;                 // 检测到的所有目标
+  optional int32 objects_num = 3  [default = -1]; // 检测到的目标数。因为objectlist是repeated字段，自带size()函数接口可以返回目标个数，因此可以不使用此字段。<0表示未使用
+  optional SrcImage image_data = 4;               // 用于目标检测模型的输入图像数据
+}

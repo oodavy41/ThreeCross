@@ -1,0 +1,56 @@
+syntax = "proto2";
+
+package ec.event_config;
+
+message EventConfig{
+  enum LogLevel
+  {
+    LOGLEVEL_START = 0;
+    FETAL = 1;
+    ERROR = 2;
+    WARNING = 3;
+    NOTICE = 4;
+    DEBUG = 5;
+    LOGLEVEL_END = 6; 
+  }
+
+  optional uint32 group_id = 1;
+  optional bool need_save_result = 2;
+  optional bool use_wgs = 3;
+
+  optional int32 net_width = 10;
+  optional int32 net_height = 11;
+  optional string main_camera_calib = 12;
+  optional string tele2wide_calib = 13;
+  optional string camera_ip_file = 14;
+  optional string wide_lane_calib_file = 17;
+  optional string tele_lane_calib_file = 18;
+  optional string rtk_config_file = 19;
+  optional string camera_config_file = 20;
+
+  //
+  optional LogLevel loglevel = 22;
+  optional string logpath = 23;
+  optional string app_name = 24;
+
+
+  optional float overspeed_vel_threshold = 30; // 单位km/h
+  optional float overspeed_time_threshold = 31; // 单位s
+  optional float underspeed_vel_threshold = 32;
+  optional float underspeed_time_threshold = 33;
+  optional float parking_vel_threshold = 34;
+  optional float parking_time_threshold = 35;
+  optional float emergency_time_threshold = 36;
+  optional float small_lane_time_threshold = 37;
+  optional float junction_time_threshold = 38;
+  optional float jam_vel_threshold = 39;
+  optional float jam_num_threshold = 40;
+  optional float jam_threshold = 41;
+  optional float queue_dis_threshold = 42;
+  optional float intrusion_time_threshold = 43;
+  optional float wrong_direct_dis_threshold = 44;
+
+  // channels
+  optional string event_channel = 200;
+}
+

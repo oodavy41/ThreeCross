@@ -1,0 +1,9 @@
+syntax = "proto2";
+
+package autoplt.fusion.Motion_Fusion;
+
+message Config {
+    optional string test = 1;
+    optional uint32 filter_size = 2;
+    optional int32 fusion_interval = 3 [default = 100]; // ms
+}

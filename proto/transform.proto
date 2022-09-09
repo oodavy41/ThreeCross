@@ -1,0 +1,21 @@
+syntax = "proto2";
+
+package autoplt.transform;
+
+message Quaternion{
+  required double w = 1;  
+  required double x = 2;
+  required double y = 3;
+  required double z = 4;
+}
+
+message Translation{
+  required float x = 1;
+  required float y = 2;
+  required float z = 3;
+}
+
+message Transform{
+  required Translation translation = 1;
+  required Quaternion quaternion = 2;
+}

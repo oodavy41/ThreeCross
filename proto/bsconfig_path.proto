@@ -1,0 +1,70 @@
+syntax = "proto2";
+
+package ec.ConfigPath;
+message configPath{
+  enum LogLevel
+  {
+    LOGLEVEL_START = 0;
+    FETAL = 1;
+    ERROR = 2;
+    WARNING = 3;
+    NOTICE = 4;
+    DEBUG = 5;
+    LOGLEVEL_END = 6; 
+  }
+  optional string login_info_path= 1;
+  optional string ip_conf1= 2;
+  optional string ip_conf2= 3;
+  optional string device_conf= 4;
+  optional string domain_conf1= 5;
+  optional string domain_conf2= 6;
+  optional string calib_camera_conf= 7;
+  optional string calib_radar_conf= 8;
+  optional string timed_conf= 9;
+  optional string reboot_conf1= 10;
+  optional string reboot_conf2= 11;
+  optional string upload_radar_calib_path=12;
+  optional string upload_video_calib_path=13;
+  optional string sh_file_path=14;
+  optional LogLevel loglevel=15;
+  optional string logpath=16;
+  optional string calib_save_path=17;
+  optional string road_calib_path=49;
+  optional string app_name=18;
+  optional string device_info1=19;
+
+  optional string pole_id_path=20;
+  optional string camera_file0=22;
+  optional string camera_file1=23;
+  optional string camera_file2=24;
+  optional string camera_file3=25;
+
+  optional string radar_file0=26;
+  optional string radar_file1=27;
+
+  optional string road_file0=28;
+  optional string road_file1=29;
+  optional string road_file2=30;
+  optional string road_file3=31;
+
+  optional string rtk_file=32;
+  
+  optional string bak_root=33;
+  optional string camera_bak_dir=34;
+  optional string radar_bak_dir=35;
+  optional string road_calib_bak_dir=36;
+  optional string rtk_bak_dir=37;
+  optional string ota_save_path=38;
+  optional string ota_bak_dir=39;
+  optional string radar1_conf=40;
+  optional string radar2_conf=41;
+  optional string radar3_conf=50;
+  optional string radar4_conf=51;
+  optional string radar_conf=42;
+  optional string log_dir=43;
+  optional string loglevel_path=44;
+  optional string conf_zip_path=45;
+  optional string conf_temp_path=46;
+  optional string conf_file_path=47;
+  optional string roicalibfile=48;
+}

@@ -1,0 +1,24 @@
+syntax = "proto2";
+
+package ec.fusion;
+import "fusion_objects.proto";
+import "object_perception_msg.proto";
+import "ads_radar.proto";
+import "osi_common.proto";
+
+
+message FusionSensorInfo{
+  optional string sensor_id = 1;  // 传感器ID
+  optional uint64 timestamp = 2;  // 消息的时间戳
+}
+
+message SensortoFusion {
+  optional int32 fusionid = 1;
+  optional ec.perception.ObjectMsg sensorobject = 2;  // camera fusion object
+  optional autoplt.RadarFrame radarframeobject = 3;   // radar object
+  optional ec.perception.ObjectMsg fusionobject = 4;
+  repeated FusionSensorInfo fusion_sensor = 5;
+}
+
+
+

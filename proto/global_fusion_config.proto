@@ -1,0 +1,42 @@
+syntax = "proto2";
+
+package autoplt.global_fusion_config;
+
+enum FusionSensorType{
+    UNKNOWN_TYPE = 0;
+    FUSION = 1;
+    CAMERA = 2;
+    RADAR = 3;
+    LIDAR = 4;
+    ULTRASONIC = 5;
+}
+
+message FusionSensorConfig{
+    optional string sensor_out_channel = 1;
+    optional FusionSensorType sensor_type = 2;
+    optional string sensor_id = 3;
+    optional bool need_fusion = 4 [default = true];
+    optional bool need_display = 5;
+    optional float roi_x = 6;
+    optional float roi_y = 7;
+    optional bool need_transform = 8;
+    optional string transform_param_file = 9;
+    optional int32 save_frames = 10; // for test
+    optional bool use_sersor_timestamp = 11;
+}
+
+message GlobalFusionConfig{
+  repeated FusionSensorConfig fusion_sensors = 1;
+  optional string global_fusion_in_channel = 2;
+  optional string global_fusion_out_channel = 3;
+  optional string fusion_result_display_channel = 4;
+  optional string fusion_result_event_channel = 5;
+  optional string fusion_result_server_channel = 6;
+  optional string display_config_file_path = 7;
+  optional string param_path = 8;
+  optional bool show_fusion_object = 9;
+  optional float interval = 10;
+  optional bool show_debug_info = 11;
+  optional int32 node_id = 12;
+  optional string rtk_config_file = 13;
+}

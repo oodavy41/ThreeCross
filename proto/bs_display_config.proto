@@ -1,0 +1,10 @@
+syntax = "proto2";
+
+package autoplt.bsdisplay.config;
+
+
+message BSDisplayConfig{
+  required string bs_data_channel = 1;
+  optional uint32 server_port = 2;
+}
+

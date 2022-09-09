@@ -1,0 +1,25 @@
+syntax = "proto2";
+
+package ec.copy;
+
+
+enum LogLevel{
+  LOGLEVEL_START = 0;
+  FETAL = 1;
+  ERROR = 2;
+  WARNING = 3;
+  NOTICE = 4;
+  DEBUG = 5;
+  LOGLEVEL_END = 6; 
+  }
+
+
+message CopyConf {
+    optional string pub_channel = 1;
+    optional string logpath = 2 [default = "/userdata/LOG/copy.log"];
+    optional LogLevel loglevel = 3 [default = ERROR];
+    optional uint32 width = 4;
+    optional uint32 height = 5;
+    optional string format = 6;
+}
+

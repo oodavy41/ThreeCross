@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package ec.recvrecord;
+
+message Conf {
+    optional string ec_img_channel = 1;
+    optional bool compress = 2;
+    optional uint32 width = 3;
+    optional uint32 height = 4; 
+}
+

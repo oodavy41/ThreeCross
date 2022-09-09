@@ -1,0 +1,16 @@
+syntax = "proto2";
+
+package autoplt.fusion.Data_Association;
+
+message Config {
+    optional string test = 1;
+    optional int32 fusion_interval = 2 [default = 100]; // ms
+    optional string world_to_camera_file = 3;
+    optional bool assocaite_loc = 4;
+    optional bool assocaite_x = 5;
+    optional bool assocaite_y = 6;
+    optional bool assocaite_vel = 7;
+    optional float max_distance = 8; 
+    optional bool show_debug_info = 9;
+
+}

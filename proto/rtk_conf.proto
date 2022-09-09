@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package autoplt.rtk;
+
+message rtkconf {
+    required string mobile_node = 1;
+    required string mobile_channel = 2;
+    required string datum_node = 3;
+    required string datum_channel = 4;
+    required string gnss_config_path = 5;
+};

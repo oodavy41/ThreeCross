@@ -1,0 +1,27 @@
+syntax = "proto2";
+
+package ec.vx;
+
+
+enum LogLevel{
+  LOGLEVEL_START = 0;
+  FETAL = 1;
+  ERROR = 2;
+  WARNING = 3;
+  NOTICE = 4;
+  DEBUG = 5;
+  LOGLEVEL_END = 6; 
+  }
+
+
+message Conf {
+    optional string pub0_channel = 1;
+    optional string pub1_channel = 2;
+    optional string pub2_channel = 3;
+    optional string pub3_channel = 4;
+    optional string logpath = 5 [default = "/userdata/LOG/vx.log"];
+    optional LogLevel loglevel = 6 [default = ERROR];
+    optional uint32  width = 7;
+    optional uint32  height = 8;
+}
+

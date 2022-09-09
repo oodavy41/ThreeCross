@@ -1,0 +1,171 @@
+syntax = "proto2";
+
+package autoplt.BSTCVCommDef;
+
+enum ROADOBJECTTYPE {
+	BST_TYPE_CAR=0; 
+	BST_TYPE_CARSUV=1;
+	BST_TYPE_VAN=2;
+	BST_TYPE_BUS=3; 
+	BST_TYPE_TRUCK=4;
+	BST_TYPE_CARSPECIAL=5;
+	BST_TYPE_MOTORCYCLE=6;
+	BST_TYPE_BICYCLE=7; 
+	BST_TYPE_RIDER=8;
+	BST_TYPE_TRICYCLE=9; 
+	BST_TYPE_PEDESTRIAN=10;
+	BST_TYPE_TRAFFICSIGNS=11;
+	BST_TYPE_TRAFFICCONE=12;
+	BST_TYPE_UNKNOWN=13;
+  BST_TYPE_PLATE=14;
+}
+
+
+message CLASSIFICATION {
+  optional ROADOBJECTTYPE obj_class = 1;
+  optional float confidence_class = 2;
+}
+
+
+enum ROADOBJECTORIENTATION {
+	BST_ORIENTATION_FRONT=0; 
+	BST_ORIENTATION_REAR=1;
+	BST_ORIENTATION_LEFT=2;
+	BST_ORIENTATION_RIGHT=3; 
+	BST_ORIENTATION_LEFTFRONT=4;
+	BST_ORIENTATION_RIGHTFONT=5;
+	BST_ORIENTATION_LEFTREAR=6;
+	BST_ORIENTATION_RIGHTREAR=7;
+}
+
+
+message BBOX {
+   optional float x1 = 1  [default = 0];
+   optional float y1 = 2  [default = 0];
+   optional float x2 = 3  [default = 0];
+   optional float y2 = 4  [default = 0];
+    // left-top, right-bottom
+
+   optional float angle_x = 5  [default = 0];
+   optional float angle_y = 6  [default = 0];
+
+   optional float front_x = 7  [default = 0];
+   optional float front_y = 8  [default = 0];
+
+   optional float rear_x = 9  [default = 0];
+   optional float rear_y = 10  [default = 0];
+
+}
+
+message BBOX3D {
+   optional float up_1_x = 1  [default = 0];
+   optional float up_1_y = 2  [default = 0];
+   optional float up_2_x = 3  [default = 0];
+   optional float up_2_y = 4  [default = 0];
+   optional float up_3_x = 5  [default = 0];
+   optional float up_3_y = 6  [default = 0];
+   optional float up_4_x = 7  [default = 0]; 
+   optional float up_4_y = 8  [default = 0];  
+   optional float bottom_1_x = 9  [default = 0];
+   optional float bottom_1_y = 10  [default = 0];
+   optional float bottom_2_x = 11  [default = 0];
+   optional float bottom_2_y = 12  [default = 0];
+   optional float bottom_3_x = 13  [default = 0];
+   optional float bottom_3_y = 14  [default = 0];
+   optional float bottom_4_x = 15  [default = 0]; 
+   optional float bottom_4_y = 16  [default = 0]; 
+   
+   
+    // left-top, right-bottom
+}
+
+message PlateResult {
+    optional string plate_string = 1;
+    optional float score = 2;
+    repeated int32 letter_indices = 3;
+    repeated float letter_scores = 4;
+}
+
+message Header {
+    optional uint32 seq = 1;
+    optional uint64 timestamp = 2;
+    optional string frame_id = 3;
+}
+
+
+
+message BBOXARRAY {
+   optional BBOX bbox = 1; // network output
+   optional BBOX3D bboxglobal = 2; // fusion output
+   
+}
+
+// vehicle status of one timestamp
+message BSTVECHILESTATUS {
+
+	repeated BBOXARRAY bboxarray= 1; // bbox array to record history bbox at different time stamp
+
+	optional float confidence = 2; // network output   
+
+	optional float x_offset = 3;
+
+	optional int32 category_id = 4;
+
+	repeated CLASSIFICATION classification = 5; // network output
+
+	optional float width = 6; // fusion output
+	optional float length = 7; // fusion output
+	optional float height =8; // fusion output
+	optional float width_var = 9; // fusion output
+	optional float length_var = 10; // fusion output
+	optional float height_var = 11; // fusion output
+
+	optional double position_cx = 12; // fusion output
+	optional double position_cy = 13; // fusion output
+  
+	optional double to_camera_cx = 14; // fusion output
+	optional double to_camera_cy = 15; // fusion output
+
+	optional float yaw = 16; // fusion output
+	optional float yaw_rate = 17; // fusion output
+
+	optional double velocity_x = 18; // fusion output
+	optional double velocity_y = 19; // fusion output
+	optional double velocity_z = 20; // fusion output
+
+	optional double acceleration_x = 21; // fusion output
+	optional double acceleration_y = 22; // fusion output
+	optional double acceleration_z = 23; // fusion output
+
+	optional ROADOBJECTORIENTATION obj_orientation = 24;
+  
+  optional BBOX plate_box = 25;
+  optional bytes plate_img_data = 26;
+  optional PlateResult plate_result = 27;
+
+}
+
+message SrcImage {
+  optional uint32 height = 1;  // image height, that is, number of rows
+  optional uint32 width = 2;   // image width, that is, number of columns
+  optional uint32 nodeindex = 3; //1:net 2:3d 3:cvfusion
+  optional float fps = 4;
+  optional uint32 step = 5;  // Full row length in bytes
+  optional bytes data = 6;   // actual matrix data, size is (step * rows)
+}
+
+message ROADCVOBJECT {
+  optional uint32  id = 1; // network output
+  optional uint64 time_stamp = 2; // sys read input
+  optional BSTVECHILESTATUS status = 3;
+  optional int32 cameraID = 4; // cameraID of the image input
+}
+
+message ROADCV_OBJECT_LIST {
+  optional int32 objectnum = 1; // total number of current detected objects
+  optional int32 cameraID = 2; // cameraID of the image input
+  optional Header header = 3;
+  repeated ROADCVOBJECT objectlist = 4; // vector of objects
+  optional SrcImage imagedata = 5;//image for display
+  optional bool camera_ok = 6 [default = true];
+}

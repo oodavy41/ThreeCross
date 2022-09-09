@@ -1,0 +1,17 @@
+syntax = "proto2";
+
+package autoplt.global_fusion_param;
+
+
+message SensorFusionParam{
+  required string sensor_id = 1;
+  repeated float translation = 2; 
+  repeated float quaterniond = 3; 
+  repeated float pos_covariance = 4; 
+  repeated float vel_covariance = 5;
+  repeated float acc_covariance = 6; 
+}
+
+message GlobalFusionParam{  
+  repeated SensorFusionParam fusion_sensors_param = 1; 
+}

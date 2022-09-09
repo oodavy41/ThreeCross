@@ -1,0 +1,18 @@
+syntax = "proto2";
+
+package ec.fusion;
+import "fusion_objects.proto";
+
+
+message FusionSensors{
+  optional string sensor_id = 1;  // 传感器ID
+  optional uint64 timestamp = 2;  // 消息的时间戳
+}
+
+message FusionResult {
+  repeated autoplt.fusion.FusionObjects sensorobjects = 1;
+  optional autoplt.fusion.FusionObjects fusionobject = 2;
+  repeated FusionSensors fusion_sensor = 3;
+}
+
+

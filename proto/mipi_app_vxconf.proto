@@ -1,0 +1,41 @@
+syntax = "proto2";
+
+package ec.mipiapp.vx;
+
+
+enum LogLevel{
+  LOGLEVEL_START = 0;
+  FETAL = 1;
+  ERROR = 2;
+  WARNING = 3;
+  NOTICE = 4;
+  DEBUG = 5;
+  LOGLEVEL_END = 6; 
+  }
+
+
+message Conf {
+    optional string pub0_channel = 1;
+    optional string pub1_channel = 2;
+    optional string pub2_channel = 3;
+    optional string pub3_channel = 4;
+    optional string logpath = 5 [default = "/userdata/LOG/mipiappvx.log"];
+    optional LogLevel loglevel = 6 [default = ERROR];
+    optional string  app_name = 7;
+    optional uint32  width = 8;
+    optional uint32  height = 9;
+    optional uint32  scale_width = 10;
+    optional uint32  scale_height = 11;
+    optional bool valid_camera0 = 12;
+    optional bool valid_camera1 = 13;
+    optional bool valid_camera2 = 14;
+    optional bool valid_camera3 = 15;
+    optional bool use_cpu = 16 ;
+    optional string use_dsp_core = 17 [default = "1,0,0,0"];
+    optional bool use_phys_addr = 18 [default = true];
+    optional string conf_path = 19;
+    optional bool use_tzc = 20 [default = false];
+    optional string fd_path = 21 ;
+
+}
+

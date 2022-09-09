@@ -1,0 +1,23 @@
+syntax = "proto2";
+
+package ec.record.rgb;
+
+enum LogLevel{
+  LOGLEVEL_START = 0;
+  FETAL = 1;
+  ERROR = 2;
+  WARNING = 3;
+  NOTICE = 4;
+  DEBUG = 5;
+  LOGLEVEL_END = 6; 
+  }
+
+
+message Conf {
+    optional string logpath = 1 [default = "/userdata/LOG/record.log"];
+    optional LogLevel loglevel = 2 [default = ERROR];
+    optional uint32  width = 3;
+    optional uint32  height = 4;
+    optional string data_img_channel = 5;
+    optional bool compress = 6 [default = true];
+}

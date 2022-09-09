@@ -1,0 +1,36 @@
+syntax = "proto2";
+
+package autoplt.fusion;
+
+enum LogLevel
+{
+    LOGLEVEL_START = 0;
+    FETAL = 1;
+    ERROR = 2;
+    WARNING = 3;
+    NOTICE = 4;
+    DEBUG = 5;
+    LOGLEVEL_END = 6; 
+}
+message FusionConfig {
+    optional string class_fusion_method = 1;
+    optional string motion_fusion_method = 2;
+    optional string shape_fusion_method = 3;
+    optional string existence_fusion_method = 4;
+    required string association_method = 5;
+    required string fusion_output_channel = 6 [default = "/perception/fusion/obstacles"];
+    optional int32 fusion_interval = 7 [default = 100]; // ms
+    optional float max_sensor_time_interval = 8 [default = 0.1]; // max duration of object since detection [s];
+    required float max_tracking_time = 9 [default = 0.1]; // max duration of object since detection [s]
+    optional string class_fusion_config_file_path = 10;
+    optional string motion_fusion_config_file_path = 11;
+    optional string shape_fusion_config_file_path = 12;
+    optional string existence_fusion_config_file_path = 13;
+    optional string association_config_file_path = 14;
+    optional bool use_async_processing = 15;
+    optional bool show_debug_info = 16;
+    optional LogLevel loglevel = 17;
+    optional string logpath = 18;
+    optional string component_config_file = 19;
+    repeated int32 unaddtrack_sensortypes = 20;
+}

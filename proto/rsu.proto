@@ -1,0 +1,25 @@
+syntax = "proto2";
+
+package ec.rsu;
+
+message Rsu {
+
+    enum LogLevel
+    {
+    LOGLEVEL_START = 0;
+    FETAL = 1;
+    ERROR = 2;
+    WARNING = 3;
+    NOTICE = 4;
+    DEBUG = 5;
+    LOGLEVEL_END = 6; 
+    }
+
+    optional bool simu = 1;
+    optional LogLevel loglevel = 2;
+    optional string logpath = 3;
+    required int32 global_location_acquisition_mode = 4;
+    optional string gnsssub_channel = 5;
+    optional string rtk_conf = 6; 
+    optional string app_name = 7;
+}

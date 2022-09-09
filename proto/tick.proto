@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package ec.sentry;
+
+
+message TickMsg {
+    required string module = 1;
+    required uint64 timestamp = 2;
+    optional uint32 code = 3;
+}
+
