@@ -48,11 +48,12 @@ export default class FPSControl {
     this.rotateSpeed = settings?.rotateSpeed || this.rotateSpeed;
     this.camera = camera;
     this.dom = dom;
-    camera.lookAt(this.camera.position.clone().add(forward));
+    this.rotateY = this.camera.rotation.y + Math.PI / 2;
+    this.rotateX = this.camera.rotation.x;
+    // camera.lookAt(this.camera.position.clone().add(forward));
     camera.up = VEC_UP;
     this.forward = forward;
     this.right = this.forward.clone().cross(VEC_UP);
-    this.rotateY = this.camera.rotation.y;
     this.keyEventBind();
     this.mouseEventBind();
   }
@@ -81,6 +82,7 @@ export default class FPSControl {
   }
   rotation(time: number) {
     let delta = this.nowXY.map((value, index) => value - this.lastXY[index]);
+    console.log(this.rotateX, this.rotateY);
     this.lastXY = [...this.nowXY];
 
     this.rotateY += -Math.tan(
@@ -90,6 +92,7 @@ export default class FPSControl {
     this.rotateX += -Math.tan(
       (delta[1] * this.rotateSpeed * time) / CAM_ROT_RADIUS
     );
+    console.log(this.rotateX, this.rotateY);
     this.forward = new THREE.Vector3(
       Math.cos(this.rotateY),
       Math.sin(this.rotateX),

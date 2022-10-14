@@ -10,6 +10,9 @@ import { CopyShader } from "three/examples/jsm/shaders/CopyShader.js";
 import { carPool } from "../crossGen/car";
 import cross from "../crossGen/cross";
 import FPSControl from "./FPSctrl";
+import skyCube from "./skybox";
+
+const NEW_CAR_CHANCE = 0.05;
 
 export default function tInit(container: HTMLDivElement) {
   let [cWidth, cHeight] = [container.clientWidth, container.clientHeight];
@@ -20,17 +23,17 @@ export default function tInit(container: HTMLDivElement) {
     0.25,
     100
   );
-  camera.position.set(0, 0, 10);
-  camera.lookAt(0, 0, 0);
 
   let scene = new THREE.Scene();
   let renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   scene.add(new THREE.AmbientLight("#fff", 0.5));
-  let directLight = new THREE.DirectionalLight("#aaf", 0.6);
+  let directLight = new THREE.DirectionalLight("#ffffaa", 1.0);
   directLight.lookAt(-1, -1, -1);
   scene.add(directLight);
 
+  //skybox
+  scene.background = new THREE.Color("black");
   // helper
   scene.add(new THREE.AxesHelper(1000));
 
@@ -51,11 +54,11 @@ export default function tInit(container: HTMLDivElement) {
   // renderPass.enabled = false;
   composer.addPass(renderPass);
 
-  let taaRenderPass = new TAARenderPass(scene, camera, 0, 1.0);
+  let taaRenderPass = new TAARenderPass(scene, camera, 0, 0);
   taaRenderPass.unbiased = true;
   // taaRenderPass.accumulate = true;
-  taaRenderPass.sampleLevel = 2;
-  // composer.addPass(taaRenderPass);
+  taaRenderPass.sampleLevel = 1;
+  composer.addPass(taaRenderPass);
 
   let FXAAShaderPass = new ShaderPass(FXAAShader);
   FXAAShaderPass.uniforms["resolution"].value.set(1 / cWidth, 1 / cHeight);
@@ -66,16 +69,20 @@ export default function tInit(container: HTMLDivElement) {
     cWidth * renderer.getPixelRatio(),
     cHeight * renderer.getPixelRatio()
   );
-  composer.addPass(smaa);
+  // composer.addPass(smaa);
 
   var effectCopy = new ShaderPass(CopyShader);
   composer.addPass(effectCopy);
 
+  camera.position.set(0, 5, 10);
+  camera.lookAt(0,-5,-10)
   const CamFpsCtrl = new FPSControl(
     camera,
     renderer.domElement,
-    new Vector3(0, 0, -1)
+    new Vector3(0,-5,-10)
   );
+
+
   function onResize() {
     if (
       cWidth !== container.clientWidth ||
@@ -117,7 +124,7 @@ export default function tInit(container: HTMLDivElement) {
       info.map((value) => ({ roadWidth: value.width, roadAngle: value.angle }))
     );
     scene.add(crossComp.genThreeObj());
-    carManager = new carPool(0.05, 100, crossComp);
+    carManager = new carPool(NEW_CAR_CHANCE, 100, crossComp);
     crossComp.threeObj?.add(carManager.selfObj);
   };
 

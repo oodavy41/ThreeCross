@@ -14,6 +14,7 @@ import {
 import cross from "./cross";
 import road from "./road";
 import trail from "./trail";
+import carModel from "./carModel";
 
 const SHOW_TRAIL = false;
 
@@ -46,7 +47,7 @@ export class carPool {
   }
   awake() {
     let [from, to] = this.cross.randomRoads(2);
-    let speed = (40 / 18000) * (Math.random() * 0.6 + 0.7);
+    let speed = (40 / 27000) * (Math.random() * 0.6 + 0.7);
 
     if (this.lastLiving + 1 >= this.carPool.length) {
       if (this.carPool.length < this.limit) {
@@ -56,6 +57,7 @@ export class carPool {
         this.lastLiving++;
         if (SHOW_TRAIL) {
           this.selfObj.add(newcar.trailObj);
+          this.selfObj.add(...newcar.trail.trailPoints)
         }
       }
     } else {
@@ -90,10 +92,7 @@ export class car {
 
   constructor(from: road, to: road, speed: number) {
     this.trail = new trail(from, to);
-    this.carObj = new Mesh(
-      new BoxGeometry(0.05, 0.05, 0.15),
-      new MeshBasicMaterial({ color: Math.random() * 0xffffff })
-    );
+    this.carObj = new Object3D();
     this.carObj.position.set(100, 100, 100);
     this.carObj.rotateY(Math.PI / 2);
     this.trailObj = new Line(new BufferGeometry(), new LineBasicMaterial());
@@ -122,9 +121,8 @@ export class car {
     this.trailObj.computeLineDistances;
 
     this.living = 0;
-    ((this.carObj as Mesh).material as MeshBasicMaterial).color.set(
-      new Color(Math.random() * 0xffffff)
-    );
+    this.carObj.clear();
+    this.carObj.add(new carModel())
     this.carObj.visible = true;
   }
 

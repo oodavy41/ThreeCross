@@ -8,9 +8,11 @@ import {
   Curve,
   Vector3,
   LineCurve3,
+  QuadraticBezierCurve3,
 } from "three";
 import cross from "./cross";
 import road from "./road";
+import { intersectPoint } from "./utils";
 
 const RADIUS = 20;
 
@@ -66,12 +68,26 @@ export default class trail {
   }
 
   trailGenrate(from: road, to: road) {
-    let fromOffset = -(Math.random() * 0.5 + 0.25) * from.width/2,
-      toOffset = (Math.random() * 0.5 + 0.25) * to.width/2;
+    let fromOffset = (-(Math.random() * 0.5 + 0.25) * from.width) / 2,
+      toOffset = ((Math.random() * 0.5 + 0.25) * to.width) / 2;
+    let midpoint =
+      from === to
+        ? new Vector3()
+        : intersectPoint(
+            {
+              start: from.getPoint(1, fromOffset),
+              direction: from.direction.clone().multiplyScalar(-1),
+            },
+            {
+              start: to.getPoint(1, toOffset),
+              direction: to.direction.clone().multiplyScalar(-1),
+            }
+          );
     let ctrlPoints = [
       from.getPoint(RADIUS, fromOffset),
       from.getPoint(from.crossDistance! + from.crossWalkDistance, fromOffset),
       from.getPoint(from.crossDistance!, fromOffset),
+      midpoint,
       to.getPoint(to.crossDistance!, toOffset),
       to.getPoint(to.crossDistance! + to.crossWalkDistance, toOffset),
       to.getPoint(RADIUS, toOffset),
@@ -81,13 +97,22 @@ export default class trail {
       point.position.copy(value);
       return point;
     });
+
+    let trail = [
+      ...ctrlPoints.slice(0, 3),
+      ...new QuadraticBezierCurve3(
+        ctrlPoints[2],
+        ctrlPoints[3],
+        ctrlPoints[4]
+      ).getPoints(100),
+      ...ctrlPoints.slice(4),
+    ];
+
     this._trailLine = new CurvePath();
-    new CatmullRomCurve3(ctrlPoints)
-      .getSpacedPoints(200)
-      .forEach((value, index, array) => {
-        if (index < 200) {
-          this._trailLine.add(new LineCurve3(value, array[index + 1]));
-        }
-      });
+    for (let i = 0; i < trail.length - 1; i++) {
+      let curve = new LineCurve3(trail[i], trail[i + 1]);
+      curve.arcLengthDivisions = 3;
+      this._trailLine.add(curve);
+    }
   }
 }
