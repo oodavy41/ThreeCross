@@ -11,6 +11,23 @@ import { carPool } from "../crossGen/car";
 import cross from "../crossGen/cross";
 import FPSControl from "./FPSctrl";
 import skyCube from "./skybox";
+import { laneForward } from "../crossGen/lane";
+
+export interface laneInfo {
+  signType: laneForward;
+  width: number;
+}
+
+export interface roadInfo {
+  lanes: laneInfo[];
+  direction: Vector3;
+  walkCrossWidth?: number;
+}
+
+export interface crossInfo {
+  roads: roadInfo[];
+  center: Vector3;
+}
 
 const NEW_CAR_CHANCE = 0.05;
 
@@ -57,31 +74,30 @@ export default function tInit(container: HTMLDivElement) {
   let taaRenderPass = new TAARenderPass(scene, camera, 0, 0);
   taaRenderPass.unbiased = true;
   // taaRenderPass.accumulate = true;
-  taaRenderPass.sampleLevel = 1;
+  taaRenderPass.sampleLevel = 2;
   composer.addPass(taaRenderPass);
 
-  let FXAAShaderPass = new ShaderPass(FXAAShader);
-  FXAAShaderPass.uniforms["resolution"].value.set(1 / cWidth, 1 / cHeight);
-  FXAAShaderPass.renderToScreen = true;
-  // composer.addPass(FXAAShaderPass)
+  // let FXAAShaderPass = new ShaderPass(FXAAShader);
+  // FXAAShaderPass.uniforms["resolution"].value.set(1 / cWidth, 1 / cHeight);
+  // FXAAShaderPass.renderToScreen = true;
+  // composer.addPass(FXAAShaderPass);
 
-  const smaa = new SMAAPass(
-    cWidth * renderer.getPixelRatio(),
-    cHeight * renderer.getPixelRatio()
-  );
+  // const smaa = new SMAAPass(
+  //   cWidth * renderer.getPixelRatio(),
+  //   cHeight * renderer.getPixelRatio()
+  // );
   // composer.addPass(smaa);
 
   var effectCopy = new ShaderPass(CopyShader);
   composer.addPass(effectCopy);
 
   camera.position.set(0, 5, 10);
-  camera.lookAt(0,-5,-10)
+  camera.lookAt(0, -5, -10);
   const CamFpsCtrl = new FPSControl(
     camera,
     renderer.domElement,
-    new Vector3(0,-5,-10)
+    new Vector3(0, -5, -10)
   );
-
 
   function onResize() {
     if (
@@ -147,14 +163,21 @@ export default function tInit(container: HTMLDivElement) {
   }
   let animation = renderloop(0);
 
+  function onDispatch() {
+    renderer.forceContextLoss();
+    container.removeChild(renderer.domElement);
+    cancelAnimationFrame(animation);
+  }
+
   return {
     scene,
     camera,
     renderer,
     ticker,
     animation,
-    haldlers: {
+    handlers: {
       onChangeRoadinfo,
+      onDispatch,
     },
   };
 }

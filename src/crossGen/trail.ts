@@ -11,6 +11,7 @@ import {
   QuadraticBezierCurve3,
 } from "three";
 import cross from "./cross";
+import lane from "./lane";
 import road from "./road";
 import { intersectPoint } from "./utils";
 
@@ -20,17 +21,17 @@ export default class trail {
   _trailLine!: CurvePath<Vector3>;
   _trailPoints!: Object3D[];
 
-  _from: road;
-  _to: road;
+  _from: lane;
+  _to: lane;
   _modifyed: boolean = true;
 
-  constructor(from: road, to: road) {
+  constructor(from: lane, to: lane) {
     this._from = from;
     this._to = to;
     this.trailGenrate(from, to);
   }
 
-  set from(value: road) {
+  set from(value: lane) {
     if (value !== this.from) {
       this._from = value;
       this._modifyed = true;
@@ -41,7 +42,7 @@ export default class trail {
     return this._from;
   }
 
-  set to(value: road) {
+  set to(value: lane) {
     if (value !== this.to) {
       this._to = value;
       this._modifyed = true;
@@ -67,30 +68,28 @@ export default class trail {
     return this._trailPoints;
   }
 
-  trailGenrate(from: road, to: road) {
-    let fromOffset = (-(Math.random() * 0.5 + 0.25) * from.width) / 2,
-      toOffset = ((Math.random() * 0.5 + 0.25) * to.width) / 2;
+  trailGenrate(from: lane, to: lane) {
     let midpoint =
-      from === to
+      from.parent === to.parent
         ? new Vector3()
         : intersectPoint(
             {
-              start: from.getPoint(1, fromOffset),
+              start: from.getPoint(1),
               direction: from.direction.clone().multiplyScalar(-1),
             },
             {
-              start: to.getPoint(1, toOffset),
+              start: to.getPoint(1),
               direction: to.direction.clone().multiplyScalar(-1),
             }
           );
     let ctrlPoints = [
-      from.getPoint(RADIUS, fromOffset),
-      from.getPoint(from.crossDistance! + from.crossWalkDistance, fromOffset),
-      from.getPoint(from.crossDistance!, fromOffset),
+      from.getPoint(RADIUS),
+      from.getPoint(from.parent.crossDistance! + from.parent.crossWalkDistance),
+      from.getPoint(from.parent.crossDistance! - 1),
       midpoint,
-      to.getPoint(to.crossDistance!, toOffset),
-      to.getPoint(to.crossDistance! + to.crossWalkDistance, toOffset),
-      to.getPoint(RADIUS, toOffset),
+      to.getPoint(to.parent.crossDistance! - 1),
+      to.getPoint(to.parent.crossDistance! + to.parent.crossWalkDistance),
+      to.getPoint(RADIUS),
     ];
     this._trailPoints = ctrlPoints.map((value) => {
       let point = new Mesh(new SphereGeometry(0.01), new MeshBasicMaterial());
@@ -104,7 +103,7 @@ export default class trail {
         ctrlPoints[2],
         ctrlPoints[3],
         ctrlPoints[4]
-      ).getPoints(100),
+      ).getPoints(50),
       ...ctrlPoints.slice(4),
     ];
 

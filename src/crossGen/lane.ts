@@ -11,7 +11,6 @@ import {
   NearestFilter,
   NearestMipMapLinearFilter,
   Object3D,
-  SphereBufferGeometry,
   TextureLoader,
   Vector3,
 } from "three";
@@ -31,6 +30,16 @@ const signIMG = {
   zuozhuan: "./assets/zuozhuan.png",
 };
 
+export enum laneForward {
+  away = 0,
+  zuozhuan = 0b001,
+  zhixing = 0b010,
+  zhixingzuozhuan = 0b011,
+  youzhuan = 0b100,
+  zhixingyouzhuan = 0b110,
+  huandao = 0b111,
+}
+
 export default class lane {
   parent: road;
   index: number;
@@ -39,6 +48,7 @@ export default class lane {
   rightDir: Vector3;
   width: number;
   front: "anear" | "away";
+  forward?: laneForward;
   constructor(
     parent: road,
     width: number,
@@ -53,6 +63,49 @@ export default class lane {
     this.front = front;
     this.index = index;
     this.start = start;
+  }
+
+  afterConstructor(totalLength: number, totalForward: number) {
+    let index = totalLength - 1 - this.index;
+    if (totalForward < 6) {
+      let signTab = [
+        [laneForward.huandao],
+        [laneForward.zhixingyouzhuan, laneForward.zhixingzuozhuan],
+        [
+          laneForward.youzhuan,
+          laneForward.zhixing,
+          laneForward.zhixingzuozhuan,
+        ],
+        [
+          laneForward.youzhuan,
+          laneForward.zhixing,
+          laneForward.zhixing,
+          laneForward.zuozhuan,
+        ],
+        [
+          laneForward.youzhuan,
+          laneForward.zhixing,
+          laneForward.zhixing,
+          laneForward.zhixing,
+          laneForward.zuozhuan,
+        ],
+      ];
+      this.forward = signTab[totalForward - 1][index];
+    } else {
+      if (index === 0) {
+        this.forward = laneForward.youzhuan;
+      } else if (index >= (totalForward * 2) / 3) {
+        if (index === totalForward - 1) {
+          this.forward = laneForward.zuozhuan;
+        } else {
+          this.forward = laneForward.zhixingzuozhuan;
+        }
+      } else if (index < totalForward) {
+        this.forward = laneForward.zhixing;
+      } else {
+        this.forward = laneForward.away;
+      }
+    }
   }
 
   genLinesObj(roadLength: number) {
@@ -107,58 +160,25 @@ export default class lane {
     );
 
     obj.position.y += 0.003;
-    obj.add(
-      this.laneSign(
-        pos[0].clone(),
-        pos[1].clone(),
-        this.parent.lanes.length - 1 - this.index,
-        this.parent.lanes.filter((v) => v.front === "anear").length
-      )
-    );
+    obj.add(this.laneSign(pos[0].clone(), pos[1].clone()));
     return obj;
   }
 
-  laneSign(
-    rightStart: Vector3,
-    leftStart: Vector3,
-    index: number,
-    total: number
-  ) {
+  laneSign(rightStart: Vector3, leftStart: Vector3) {
     if (this.front === "away") return new Object3D();
-    let signTextureUrl: string;
-    if (total < 6) {
-      let signTab = [
-        [signIMG.huandao],
-        [signIMG.zhixingyouzhuan, signIMG.zhixingzuozhuan],
-        [signIMG.youzhuan, signIMG.zhixing, signIMG.zhixingzuozhuan],
-        [signIMG.youzhuan, signIMG.zhixing, signIMG.zhixing, signIMG.zuozhuan],
-        [
-          signIMG.youzhuan,
-          signIMG.zhixing,
-          signIMG.zhixing,
-          signIMG.zhixing,
-          signIMG.zuozhuan,
-        ],
-      ];
-      signTextureUrl = signTab[total - 1][index];
-    } else {
-      if (index === 0) {
-        signTextureUrl = signIMG.youzhuan;
-      } else if (index >= (total * 2) / 3 ) {
-        if (index === total - 1) {
-          signTextureUrl = signIMG.zuozhuan;
-        } else {
-          signTextureUrl = signIMG.zhixingzuozhuan;
-        }
-      } else if (index < total) {
-        signTextureUrl = signIMG.zhixing;
-      } else {
-        signTextureUrl = "";
-      }
-    }
+    let signTextureUrl = [
+      "",
+      signIMG.zuozhuan,
+      signIMG.zhixing,
+      signIMG.zhixingzuozhuan,
+      signIMG.youzhuan,
+      "",
+      signIMG.zhixingyouzhuan,
+      signIMG.huandao,
+    ][this.forward!];
     let signTex = new TextureLoader().load(signTextureUrl);
-    signTex.magFilter=LinearMipMapNearestFilter;
-    signTex.minFilter=NearestFilter;
+    signTex.magFilter = LinearMipMapNearestFilter;
+    signTex.minFilter = NearestFilter;
     let points = [
       rightStart
         .clone()
@@ -177,7 +197,7 @@ export default class lane {
           this.direction.clone().multiplyScalar(SIGN_CROSS_DIS + this.width)
         ),
     ];
-    let uvs = [0,1,1,1,1,0,0,0];
+    let uvs = [0, 1, 1, 1, 1, 0, 0, 0];
     let indices = [0, 2, 1, 0, 3, 2];
     let positions = points.reduce((arr: number[], v) => {
       arr.push(...v.toArray());
@@ -199,5 +219,12 @@ export default class lane {
       })
     );
     return signObj;
+  }
+
+  getPoint(distance: number) {
+    return this.start
+      .clone()
+      .add(this.direction.clone().multiplyScalar(distance));
+    // .add(this.rightDir.clone().multiplyScalar(this.width / 2));
   }
 }

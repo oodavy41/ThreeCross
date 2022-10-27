@@ -5,7 +5,6 @@ import {
   Color,
   Mesh,
   MeshBasicMaterial,
-  SphereBufferGeometry,
   Texture,
   Vector3,
 } from "three";
@@ -15,10 +14,10 @@ import RoadMat from "./threeobj/roadMaterial";
 import WalkCrossMat from "./threeobj/walkCrossMaterial";
 import lane from "./lane";
 
-const CROSS_LANE_DIS = 0.05;
+const CROSS_LANE_DIS = 0.1;
 const ROAD_LENGTH = 100;
 const LANE_WIDTH = 0.35;
-const CROSS_WALK_DIS = 0.4;
+const CROSS_WALK_DIS = 0.5;
 
 export default class road {
   angle: number;
@@ -143,11 +142,14 @@ export default class road {
           this.laneWidth,
           start,
           i,
-          i >= (count-1) / 2 ? "anear":  "away"
+          i >= (count - 1) / 2 ? "anear" : "away"
         )
       );
     }
-    console.log(this.lanes)
+    let lanearCount = this.lanes.filter((v) => v.front === "anear").length;
+    this.lanes.forEach((lane) =>
+      lane.afterConstructor(this.lanes.length, lanearCount)
+    );
   }
 
   genRoadObj(roadTex: Texture, mapScale: number, roundRad: number) {

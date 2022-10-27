@@ -25,7 +25,10 @@ export default class FPSControl {
   private _rotateY: number = 0;
 
   set rotateX(value: number) {
-    this._rotateX = Math.max(Math.min(Math.PI / 2, value), -Math.PI / 2);
+    this._rotateX = Math.max(
+      Math.min(Math.PI / 2 - 0.001, value),
+      -Math.PI / 2 + 0.001
+    );
   }
   get rotateX() {
     return this._rotateX;
@@ -48,6 +51,7 @@ export default class FPSControl {
     this.rotateSpeed = settings?.rotateSpeed || this.rotateSpeed;
     this.camera = camera;
     this.dom = dom;
+    // this.rotateY = this.camera.rotation.y;
     this.rotateY = this.camera.rotation.y + Math.PI / 2;
     this.rotateX = this.camera.rotation.x;
     // camera.lookAt(this.camera.position.clone().add(forward));
@@ -82,7 +86,6 @@ export default class FPSControl {
   }
   rotation(time: number) {
     let delta = this.nowXY.map((value, index) => value - this.lastXY[index]);
-    console.log(this.rotateX, this.rotateY);
     this.lastXY = [...this.nowXY];
 
     this.rotateY += -Math.tan(
@@ -92,14 +95,15 @@ export default class FPSControl {
     this.rotateX += -Math.tan(
       (delta[1] * this.rotateSpeed * time) / CAM_ROT_RADIUS
     );
-    console.log(this.rotateX, this.rotateY);
     this.forward = new THREE.Vector3(
-      Math.cos(this.rotateY),
-      Math.sin(this.rotateX),
-      -Math.sin(this.rotateY)
+      +Math.cos(this.rotateY) * Math.cos(this.rotateX),
+      +Math.sin(this.rotateX),
+      -Math.sin(this.rotateY) * Math.cos(this.rotateX)
     ).normalize();
     this.right = this.forward.clone().cross(VEC_UP);
     this.camera.lookAt(this.camera.position.clone().add(this.forward));
+    // this.camera.rotation.set(this.rotateX, this.rotateY, 0);
+    // console.log(this.camera.rotation);
     this.camera.updateMatrixWorld();
   }
 

@@ -3,8 +3,9 @@ import * as THREE from "three";
 import trail from "./trail";
 import { Vector3 } from "three";
 import RoadMat from "./threeobj/roadMaterial";
+import lane from "./lane";
 
-const CROSS_ROUND_RAD=0.3;
+const CROSS_ROUND_RAD = 0.8;
 
 export default class cross {
   roads: road[];
@@ -20,14 +21,25 @@ export default class cross {
           new road(value.roadAngle, value.roadWidth, this, index)
       );
     this.length = legalRoadsArr.length;
-    this.roads.forEach((road) => {road.caculateSides();road.initLanes(CROSS_ROUND_RAD)});
+    this.roads.forEach((road) => {
+      road.caculateSides();
+      road.initLanes(CROSS_ROUND_RAD);
+    });
   }
 
-  randomRoads(num: number) {
-    let ret = new Array(num).fill(0).map((value) => {
-      return this.roads[Math.floor(Math.random() * this.roads.length)];
-    });
-    return ret;
+  randomLanes() {
+    let roads = [
+      this.roads[Math.floor(Math.random() * this.roads.length)],
+      this.roads[Math.floor(Math.random() * this.roads.length)],
+    ];
+    let lanes = [
+      (l: lane) => l.front === "anear",
+      (l: lane) => l.front === "away",
+    ].map((v, i) => roads[i].lanes.filter(v));
+    let result = lanes.map(
+      (lanes) => lanes[Math.floor(Math.random() * lanes.length)]
+    );
+    return result;
   }
 
   genJuction() {
@@ -60,7 +72,11 @@ export default class cross {
         .add(a[i].direction.clone().multiplyScalar(CROSS_ROUND_RAD));
       let leftPoint = a[(i + 1) % a.length]
         .intersectRight!.clone()
-        .add(a[(i + 1) % a.length].direction.clone().multiplyScalar(CROSS_ROUND_RAD));
+        .add(
+          a[(i + 1) % a.length].direction
+            .clone()
+            .multiplyScalar(CROSS_ROUND_RAD)
+        );
       let curveArr = new THREE.QuadraticBezierCurve3(
         rightPoint,
         mid,
@@ -84,8 +100,8 @@ export default class cross {
 
   genThreeObj() {
     let roadTex = new THREE.TextureLoader().load("./assets/roadTex2.jpg");
-    roadTex.wrapS=roadTex.wrapT=THREE.MirroredRepeatWrapping
-    let mapScale=5
+    roadTex.wrapS = roadTex.wrapT = THREE.MirroredRepeatWrapping;
+    let mapScale = 5;
     this.threeObj = new THREE.Object3D();
     let juctionGeo = new THREE.BufferGeometry();
     let juctionInfo = this.genJuction();
@@ -96,16 +112,11 @@ export default class cross {
     );
     let juctionIndex = juctionInfo.indices;
     juctionGeo.setIndex(juctionIndex);
-    let juctionObj = new THREE.Mesh(
-      juctionGeo,
-      new RoadMat( roadTex ,mapScale)
-    );
+    let juctionObj = new THREE.Mesh(juctionGeo, new RoadMat(roadTex, mapScale));
     this.threeObj.add(juctionObj);
 
     this.roads.forEach((road) => {
-      this.threeObj?.add(
-        road.genRoadObj( roadTex ,mapScale,CROSS_ROUND_RAD)
-      );
+      this.threeObj?.add(road.genRoadObj(roadTex, mapScale, CROSS_ROUND_RAD));
     });
 
     return this.threeObj;

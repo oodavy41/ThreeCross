@@ -25,7 +25,7 @@ function App() {
 
       <div className="UI">
         <Manager
-          onChangeRoadInfo={threeSet.current?.haldlers.onChangeRoadinfo!}
+          onChangeRoadInfo={threeSet.current?.handlers.onChangeRoadinfo!}
         ></Manager>
       </div>
     </div>
