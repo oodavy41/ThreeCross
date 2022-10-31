@@ -10,21 +10,30 @@ import {
   MeshBasicMaterial,
   Object3D,
   SphereGeometry,
+  Vector,
+  Vector3,
 } from "three";
 import cross from "./cross";
 import road from "./road";
 import trail from "./trail";
-import carModel from "./carModel";
 import lane from "./lane";
+import { ClassElement } from "typescript";
+import carModel from "./carModel";
+import { carModelType } from "./carModelTypes";
 
 const SHOW_TRAIL = false;
 
-export class carPool {
+export interface carManager {
+  selfObj: Object3D;
+  update(T: number): void;
+}
+
+export class carPool implements carManager {
   selfObj: Object3D;
   limit: number;
   chance: number;
   cross: cross;
-  carPool: car[];
+  carPool: carTrail[];
   lastLiving: number;
   constructor(chance: number, limit: number, parent: cross) {
     this.selfObj = new Object3D();
@@ -52,7 +61,7 @@ export class carPool {
 
     if (this.lastLiving + 1 >= this.carPool.length) {
       if (this.carPool.length < this.limit) {
-        let newcar = new car(from, to, speed);
+        let newcar = new carTrail(from, to, speed);
         this.carPool.push(newcar);
         this.selfObj.add(newcar.carObj);
         this.lastLiving++;
@@ -83,13 +92,104 @@ export class carPool {
   }
 }
 
+export class carMap<
+  T extends {
+    position: Vector3;
+    direction: Vector3;
+    speed: Vector3;
+    type?: carModelType;
+  }
+> implements carManager
+{
+  selfObj: Object3D;
+  cross: cross;
+  carMap: { [key: string]: { car: car; living: boolean } };
+  constructor(parent: cross) {
+    this.selfObj = new Object3D();
+    this.cross = parent;
+    this.carMap = {};
+  }
+
+  update(T: number) {
+    for (let id in this.carMap) {
+      console.log(T, this.carMap[id].car.carObj.position);
+      this.carMap[id].car.update(T);
+    }
+  }
+
+  pushData(data: { [key: string]: T }) {
+    for (let id in this.carMap) {
+      this.carMap[id].living = false;
+    }
+    for (let uuid in data) {
+      let carData = data[uuid];
+      if (this.carMap[uuid]) {
+        let carNode = this.carMap[uuid].car;
+        carNode?.fit(carData.position, carData.direction, carData.speed);
+        this.carMap[uuid].living = true;
+      } else {
+        let carObj = new car(carData.type);
+        carObj.fit(carData.position, carData.direction, carData.speed);
+        this.selfObj.add(carObj.carObj);
+        this.carMap[uuid] = { car: carObj, living: true };
+      }
+    }
+    for (let id in this.carMap) {
+      if (!this.carMap[id].living) {
+        this.selfObj.remove(this.carMap[id].car.carObj);
+        delete this.carMap[id];
+      }
+    }
+  }
+}
+
+let carModelClass: undefined | (new (type: carModelType) => carModel);
+if (typeof window !== "undefined") {
+  import("./carModel").then((carModel) => {
+    carModelClass = carModel.default;
+  });
+}
+
 export class car {
+  carObj: Object3D;
+  speed: Vector3;
+  direction: Vector3;
+  type?: carModelType;
+
+  constructor(type?: carModelType) {
+    this.carObj = new Object3D();
+    this.carObj.rotateY(Math.PI / 2);
+    this.speed = new Vector3();
+    this.direction = new Vector3();
+    this.type = type ? type : carModelType.random();
+    if (carModelClass) {
+      this.carObj.add(new carModelClass(this.type));
+    }
+  }
+
+  fit(pos: Vector3, dir: Vector3, speed: Vector3, type?: carModelType) {
+    this.carObj.position.copy(pos);
+    this.carObj.lookAt(pos.clone().add(dir));
+    this.speed.copy(speed);
+    if (type && this.type !== type && carModelClass) {
+      this.carObj.children = [];
+      this.carObj.add(new carModelClass(type));
+    }
+  }
+
+  update(t: number) {
+    this.carObj.position.add(this.speed.clone().multiplyScalar(t));
+  }
+}
+
+export class carTrail {
   trail: trail;
   carObj: Object3D;
   trailObj!: Line;
   speed!: number;
   lifeTime!: number;
   living!: number;
+  type!: carModelType;
 
   constructor(from: lane, to: lane, speed: number) {
     this.trail = new trail(from, to);
@@ -100,7 +200,7 @@ export class car {
     this.reset(from, to, speed);
   }
 
-  reset(from: lane, to: lane, speed: number) {
+  reset(from: lane, to: lane, speed: number, type?: carModelType) {
     this.trail.from = from;
     this.trail.to = to;
     this.speed = speed;
@@ -123,7 +223,11 @@ export class car {
 
     this.living = 0;
     this.carObj.clear();
-    this.carObj.add(new carModel());
+    this.type = type || carModelType.random();
+    if (carModelClass) {
+      this.carObj.add(new carModelClass(this.type));
+    }
+
     this.carObj.visible = true;
   }
 

@@ -24,9 +24,9 @@ function App() {
       <div ref={container} className="App"></div>
 
       <div className="UI">
-        <Manager
+        {/* <Manager
           onChangeRoadInfo={threeSet.current?.handlers.onChangeRoadinfo!}
-        ></Manager>
+        ></Manager> */}
       </div>
     </div>
   );

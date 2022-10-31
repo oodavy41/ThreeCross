@@ -47,20 +47,19 @@ export default class lane {
   direction: Vector3;
   rightDir: Vector3;
   width: number;
-  front: "anear" | "away";
   forward?: laneForward;
   constructor(
     parent: road,
     width: number,
     start: Vector3,
     index: number,
-    front: "anear" | "away"
+    forward: laneForward
   ) {
     this.parent = parent;
     this.width = width;
     this.direction = parent.direction;
     this.rightDir = parent.rightDir;
-    this.front = front;
+    this.forward = forward;
     this.index = index;
     this.start = start;
   }
@@ -136,11 +135,11 @@ export default class lane {
       .setIndex([0, 2, 1, 0, 3, 2]);
 
     let lastAway =
-      this.front === "away" &&
-      this.parent.lanes[this.index + 1].front !== this.front;
+      this.forward === laneForward.away &&
+      this.parent.lanes[this.index + 1]?.forward !== laneForward.away;
     let firstAnear =
-      this.front === "anear" &&
-      this.parent.lanes[this.index - 1].front !== this.front;
+      this.forward !== laneForward.away &&
+      this.parent.lanes[this.index - 1]?.forward === laneForward.away;
 
     let obj = new Mesh(
       // new SphereBufferGeometry(1),
@@ -155,7 +154,7 @@ export default class lane {
         pos[1],
         +lastAway,
         +firstAnear,
-        +(this.front === "anear")
+        +(this.forward !== laneForward.away)
       )
     );
 
@@ -165,7 +164,7 @@ export default class lane {
   }
 
   laneSign(rightStart: Vector3, leftStart: Vector3) {
-    if (this.front === "away") return new Object3D();
+    if (this.forward === laneForward.away) return new Object3D();
     let signTextureUrl = [
       "",
       signIMG.zuozhuan,

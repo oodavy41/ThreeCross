@@ -3,22 +3,34 @@ import * as THREE from "three";
 import trail from "./trail";
 import { Vector3 } from "three";
 import RoadMat from "./threeobj/roadMaterial";
-import lane from "./lane";
+import lane, { laneForward } from "./lane";
+import { roadInfo } from "../threescript/threeMain";
 
 const CROSS_ROUND_RAD = 0.8;
 
 export default class cross {
   roads: road[];
+  roadsInfo: roadInfo[];
   length: number;
   modify: boolean = true;
   threeObj?: THREE.Object3D;
-  constructor(roadsArray: { roadWidth: number; roadAngle: number }[]) {
-    let legalRoadsArr = roadsArray;
+  constructor(roadsArray: roadInfo[]) {
+    let legalRoadsArr = roadsArray.map((r) => ({
+      ...r,
+      roadAngle: (Math.atan2(-r.direction.x, -r.direction.z) / Math.PI) * 180,
+    }));
+    this.roadsInfo = legalRoadsArr;
     this.roads = legalRoadsArr
       .sort((a, b) => a.roadAngle - b.roadAngle)
       .map(
         (value, index) =>
-          new road(value.roadAngle, value.roadWidth, this, index)
+          new road(
+            value.roadAngle,
+            value.lanes,
+            this,
+            index,
+            value.walkCrossWidth
+          )
       );
     this.length = legalRoadsArr.length;
     this.roads.forEach((road) => {
@@ -33,8 +45,8 @@ export default class cross {
       this.roads[Math.floor(Math.random() * this.roads.length)],
     ];
     let lanes = [
-      (l: lane) => l.front === "anear",
-      (l: lane) => l.front === "away",
+      (l: lane) => l.forward !== laneForward.away,
+      (l: lane) => l.forward === laneForward.away,
     ].map((v, i) => roads[i].lanes.filter(v));
     let result = lanes.map(
       (lanes) => lanes[Math.floor(Math.random() * lanes.length)]

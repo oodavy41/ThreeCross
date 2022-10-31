@@ -1,3 +1,4 @@
+import Stats from "stats.js";
 import * as THREE from "three";
 import { Vector3 } from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -7,15 +8,16 @@ import { TAARenderPass } from "three/examples/jsm/postprocessing/TAARenderPass.j
 import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader";
 import { CopyShader } from "three/examples/jsm/shaders/CopyShader.js";
-import { carPool } from "../crossGen/car";
+import { carManager, carMap, carPool } from "../crossGen/car";
 import cross from "../crossGen/cross";
 import FPSControl from "./FPSctrl";
 import skyCube from "./skybox";
 import { laneForward } from "../crossGen/lane";
+import { carModelType } from "../crossGen/carModelTypes";
 
 export interface laneInfo {
   signType: laneForward;
-  width: number;
+  width?: number;
 }
 
 export interface roadInfo {
@@ -27,11 +29,16 @@ export interface roadInfo {
 export interface crossInfo {
   roads: roadInfo[];
   center: Vector3;
+  rotationY: number;
+  scale: number;
 }
 
 const NEW_CAR_CHANCE = 0.05;
 
-export default function tInit(container: HTMLDivElement) {
+export default function tInit(
+  container: HTMLDivElement,
+  emulator: boolean = true
+) {
   let [cWidth, cHeight] = [container.clientWidth, container.clientHeight];
 
   let camera = new THREE.PerspectiveCamera(
@@ -62,6 +69,14 @@ export default function tInit(container: HTMLDivElement) {
   renderer.toneMappingExposure = 1;
   renderer.outputEncoding = THREE.sRGBEncoding;
   container.appendChild(renderer.domElement);
+  let stats: Stats | undefined;
+  if (process.env.NODE_ENV === "development") {
+    stats = new Stats();
+    stats.showPanel(0);
+    container.appendChild(stats.dom);
+    stats.dom.style.position = "absolute";
+    stats.dom.style.inset = "0px 0px auto auto";
+  }
 
   // postprocessing
 
@@ -71,22 +86,22 @@ export default function tInit(container: HTMLDivElement) {
   // renderPass.enabled = false;
   composer.addPass(renderPass);
 
-  let taaRenderPass = new TAARenderPass(scene, camera, 0, 0);
-  taaRenderPass.unbiased = true;
-  // taaRenderPass.accumulate = true;
-  taaRenderPass.sampleLevel = 2;
-  composer.addPass(taaRenderPass);
+  // let taaRenderPass = new TAARenderPass(scene, camera, 0, 0);
+  // taaRenderPass.unbiased = true;
+  // // taaRenderPass.accumulate = true;
+  // taaRenderPass.sampleLevel = 2;
+  // composer.addPass(taaRenderPass);
 
   // let FXAAShaderPass = new ShaderPass(FXAAShader);
   // FXAAShaderPass.uniforms["resolution"].value.set(1 / cWidth, 1 / cHeight);
   // FXAAShaderPass.renderToScreen = true;
   // composer.addPass(FXAAShaderPass);
 
-  // const smaa = new SMAAPass(
-  //   cWidth * renderer.getPixelRatio(),
-  //   cHeight * renderer.getPixelRatio()
-  // );
-  // composer.addPass(smaa);
+  const smaa = new SMAAPass(
+    cWidth * renderer.getPixelRatio(),
+    cHeight * renderer.getPixelRatio()
+  );
+  composer.addPass(smaa);
 
   var effectCopy = new ShaderPass(CopyShader);
   composer.addPass(effectCopy);
@@ -131,34 +146,189 @@ export default function tInit(container: HTMLDivElement) {
     };
   })();
 
-  let crossComp: cross, carManager: carPool;
-  let onChangeRoadinfo = (info: { width: number; angle: number }[]) => {
+  let crossComp: cross, carMgr: carManager;
+
+  let onChangeRoadinfo = (info: crossInfo) => {
     if (crossComp) {
       scene.remove(crossComp.threeObj!);
     }
-    crossComp = new cross(
-      info.map((value) => ({ roadWidth: value.width, roadAngle: value.angle }))
-    );
+    const { roads, rotationY, scale, center } = info;
+    crossComp = new cross(roads);
     scene.add(crossComp.genThreeObj());
-    carManager = new carPool(NEW_CAR_CHANCE, 100, crossComp);
-    crossComp.threeObj?.add(carManager.selfObj);
+    if (emulator) {
+      carMgr = new carPool(NEW_CAR_CHANCE, 100, crossComp);
+    } else {
+      carMgr = new carMap(crossComp);
+    }
+    crossComp.threeObj?.add(carMgr.selfObj);
   };
 
-  onChangeRoadinfo([
-    { width: 1.4, angle: 10 },
-    { width: 1.4, angle: 110 },
-    { width: 1.5, angle: 190 },
-    { width: 1.5, angle: 290 },
-  ]);
+  onChangeRoadinfo({
+    center: new Vector3(0, 0, 0),
+    rotationY: 0,
+    scale: 1,
+    roads: [
+      {
+        direction: new Vector3(1, 0, 0),
+        lanes: [
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.zuozhuan,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.youzhuan,
+            width: 0.3,
+          },
+        ],
+      },
+      {
+        direction: new Vector3(0, 0, -1),
+        lanes: [
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.zuozhuan,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.youzhuan,
+            width: 0.3,
+          },
+        ],
+      },
+      {
+        direction: new Vector3(-1, 0, 0.1),
+        lanes: [
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.zuozhuan,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.youzhuan,
+            width: 0.3,
+          },
+        ],
+      },
+      {
+        direction: new Vector3(0, 0, 1),
+        lanes: [
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.away,
+            width: 0.4,
+          },
+          {
+            signType: laneForward.zuozhuan,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.youzhuan,
+            width: 0.3,
+          },
+        ],
+      },
+    ],
+  });
 
   function renderloop(T: number) {
+    stats && stats.begin();
     let delta = ticker.tick(T);
     onResize();
     CamFpsCtrl.update(delta);
-    carManager.update(delta);
+    carMgr.update(delta);
     // renderer.render(scene, camera);
     composer.render();
-    scene.traverse((obj) => {});
+    // scene.traverse((obj) => {});
+    stats && stats.end();
     return requestAnimationFrame(renderloop);
   }
   let animation = renderloop(0);
@@ -167,6 +337,19 @@ export default function tInit(container: HTMLDivElement) {
     renderer.forceContextLoss();
     container.removeChild(renderer.domElement);
     cancelAnimationFrame(animation);
+  }
+
+  function onPullFitData<
+    T extends {
+      position: Vector3;
+      direction: Vector3;
+      speed: Vector3;
+      type?: carModelType;
+    }
+  >(data: { [key: string]: T }) {
+    if (!emulator) {
+      (carMgr as carMap<T>).pushData(data);
+    }
   }
 
   return {
@@ -178,6 +361,7 @@ export default function tInit(container: HTMLDivElement) {
     handlers: {
       onChangeRoadinfo,
       onDispatch,
+      onPullFitData,
     },
   };
 }

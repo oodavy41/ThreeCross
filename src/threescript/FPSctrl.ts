@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Vector3 } from "three";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
 
-const CAM_ROT_RADIUS = 50;
+const CAM_ROT_RADIUS = 100;
 const VEC_UP = new THREE.Vector3(0, 1, 0);
 
 interface FPSctrlSettings {

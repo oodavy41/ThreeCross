@@ -9,6 +9,7 @@ import {
   Vector3,
   LineCurve3,
   QuadraticBezierCurve3,
+  CubicBezierCurve3,
 } from "three";
 import cross from "./cross";
 import lane from "./lane";
@@ -74,25 +75,38 @@ export default class trail {
         ? new Vector3()
         : intersectPoint(
             {
-              start: from.getPoint(1),
+              start: from.getPoint(0),
               direction: from.direction.clone().multiplyScalar(-1),
             },
             {
-              start: to.getPoint(1),
+              start: to.getPoint(0),
               direction: to.direction.clone().multiplyScalar(-1),
             }
           );
     let ctrlPoints = [
       from.getPoint(RADIUS),
-      from.getPoint(from.parent.crossDistance! + from.parent.crossWalkDistance),
-      from.getPoint(from.parent.crossDistance! - 1),
+      from.getPoint(from.parent.crossDistance!),
+      from.getPoint(0),
       midpoint,
-      to.getPoint(to.parent.crossDistance! - 1),
-      to.getPoint(to.parent.crossDistance! + to.parent.crossWalkDistance),
+      to.getPoint(0),
+      to.getPoint(to.parent.crossDistance!),
       to.getPoint(RADIUS),
     ];
-    this._trailPoints = ctrlPoints.map((value) => {
-      let point = new Mesh(new SphereGeometry(0.01), new MeshBasicMaterial());
+    let colorMap = [
+      "white",
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "blue",
+      "purple",
+      "white",
+    ];
+    this._trailPoints = ctrlPoints.map((value, index) => {
+      let point = new Mesh(
+        new SphereGeometry(0.05),
+        new MeshBasicMaterial({ color: colorMap[index] })
+      );
       point.position.copy(value);
       return point;
     });
@@ -103,7 +117,7 @@ export default class trail {
         ctrlPoints[2],
         ctrlPoints[3],
         ctrlPoints[4]
-      ).getPoints(50),
+      ).getPoints(20),
       ...ctrlPoints.slice(4),
     ];
 

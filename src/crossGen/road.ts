@@ -12,7 +12,8 @@ import { borderRay } from "./types";
 import { intersectPoint } from "./utils";
 import RoadMat from "./threeobj/roadMaterial";
 import WalkCrossMat from "./threeobj/walkCrossMaterial";
-import lane from "./lane";
+import lane, { laneForward } from "./lane";
+import { laneInfo } from "../threescript/threeMain";
 
 const CROSS_LANE_DIS = 0.1;
 const ROAD_LENGTH = 100;
@@ -33,23 +34,25 @@ export default class road {
   intersectLeft?: Vector3;
   crossDistance?: number;
   crossWalkDistance: number = CROSS_WALK_DIS;
-  laneWidth: number = LANE_WIDTH;
   lanes!: lane[];
+  lanesInfo: laneInfo[];
 
   constructor(
     angle: number,
-    width: number,
+    lanesInfo: laneInfo[],
     parent: cross,
     index: number,
-    crossWalkWidth?: number,
-    laneWidth?: number
+    crossWalkWidth?: number
   ) {
     this.angle = angle;
-    this.width = width;
+    this.lanesInfo = lanesInfo;
+    this.width = lanesInfo.reduce(
+      (pre, cur) => pre + (cur.width || LANE_WIDTH),
+      0
+    );
     this.parent = parent;
     this.selfIndex = index;
     crossWalkWidth && (this.crossWalkDistance = crossWalkWidth);
-    laneWidth && (this.laneWidth = laneWidth);
     this.caculateSelfInfo();
   }
 
@@ -122,8 +125,6 @@ export default class road {
   }
 
   initLanes(wc_rad: number) {
-    let count = Math.floor(this.width / this.laneWidth);
-    this.laneWidth = this.width / count;
     let rightStart = this.borderRight
       .clone()
       .add(
@@ -132,24 +133,29 @@ export default class road {
           .multiplyScalar(wc_rad + this.crossWalkDistance + CROSS_LANE_DIS)
       );
     this.lanes = [];
-    for (let i = 0; i < count; i++) {
+    let offset = 0;
+    this.lanesInfo.forEach((laneInfo, i) => {
+      let width = laneInfo.width || LANE_WIDTH;
       let start = rightStart
         .clone()
-        .sub(this.rightDir.clone().multiplyScalar((i + 0.5) * this.laneWidth));
+        .sub(this.rightDir.clone().multiplyScalar(offset + width / 2));
+      offset += width;
       this.lanes.push(
         new lane(
           this,
-          this.laneWidth,
+          laneInfo.width || LANE_WIDTH,
           start,
           i,
-          i >= (count - 1) / 2 ? "anear" : "away"
+          laneInfo.signType
         )
       );
-    }
-    let lanearCount = this.lanes.filter((v) => v.front === "anear").length;
-    this.lanes.forEach((lane) =>
-      lane.afterConstructor(this.lanes.length, lanearCount)
-    );
+    });
+    // let lanearCount = this.lanes.filter(
+    //   (v) => v.forward !== laneForward.away
+    // ).length;
+    // this.lanes.forEach((lane) =>
+    //   lane.afterConstructor(this.lanes.length, lanearCount)
+    // );
   }
 
   genRoadObj(roadTex: Texture, mapScale: number, roundRad: number) {
