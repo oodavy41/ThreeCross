@@ -34,19 +34,28 @@ export interface crossInfo {
 }
 
 const NEW_CAR_CHANCE = 0.05;
+const ORTH_CAM_DHEIGHT = 10;
 
 export default function tInit(
   container: HTMLDivElement,
-  emulator: boolean = true
+  emulator: boolean = true,
+  camProj: "perspective" | "orthographic" = "perspective"
 ) {
   let [cWidth, cHeight] = [container.clientWidth, container.clientHeight];
 
-  let camera = new THREE.PerspectiveCamera(
-    45,
-    container.clientWidth / container.clientHeight,
-    0.25,
-    100
-  );
+  let camera: THREE.Camera;
+  if (camProj === "perspective") {
+    camera = new THREE.PerspectiveCamera(45, cWidth / cHeight, 0.25, 100);
+  } else {
+    camera = new THREE.OrthographicCamera(
+      -((ORTH_CAM_DHEIGHT / cHeight) * cWidth) / 2,
+      ((ORTH_CAM_DHEIGHT / cHeight) * cWidth) / 2,
+      ORTH_CAM_DHEIGHT / 2,
+      -ORTH_CAM_DHEIGHT / 2,
+      0.25,
+      100
+    );
+  }
 
   let scene = new THREE.Scene();
   let renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -59,7 +68,8 @@ export default function tInit(
   //skybox
   scene.background = new THREE.Color("black");
   // helper
-  scene.add(new THREE.AxesHelper(1000));
+  if (process.env.NODE_ENV === "development")
+    scene.add(new THREE.AxesHelper(1000));
 
   //
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -121,8 +131,20 @@ export default function tInit(
     ) {
       cWidth = container.clientWidth;
       cHeight = container.clientHeight;
-      camera.aspect = cWidth / cHeight;
-      camera.updateProjectionMatrix();
+      if (camProj === "perspective")
+        (camera as THREE.PerspectiveCamera).aspect = cWidth / cHeight;
+      else {
+        (camera as THREE.OrthographicCamera).left =
+          -((ORTH_CAM_DHEIGHT / cHeight) * cWidth) / 2;
+        (camera as THREE.OrthographicCamera).right =
+          ((ORTH_CAM_DHEIGHT / cHeight) * cWidth) / 2;
+        (camera as THREE.OrthographicCamera).top = ORTH_CAM_DHEIGHT / 2;
+        (camera as THREE.OrthographicCamera).bottom = -ORTH_CAM_DHEIGHT / 2;
+      }
+
+      (
+        camera as THREE.PerspectiveCamera | THREE.OrthographicCamera
+      ).updateProjectionMatrix();
       renderer.setSize(cWidth, cHeight);
       composer.setSize(cWidth, cHeight);
     }

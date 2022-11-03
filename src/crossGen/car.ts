@@ -13,6 +13,7 @@ import {
   Vector,
   Vector3,
 } from "three";
+
 import cross from "./cross";
 import road from "./road";
 import trail from "./trail";
@@ -20,8 +21,11 @@ import lane from "./lane";
 import { ClassElement } from "typescript";
 import carModel from "./carModel";
 import { carModelType } from "./carModelTypes";
+import { ArraySeries, EMWA } from "../utils/LPF";
 
 const SHOW_TRAIL = false;
+const Filter = false;
+const SMOOTH = 0.2;
 
 export interface carManager {
   selfObj: Object3D;
@@ -72,6 +76,7 @@ export class carPool implements carManager {
       }
     } else {
       let car = this.carPool[this.lastLiving + 1];
+
       car.reset(from, to, speed);
       this.lastLiving++;
     }
@@ -112,7 +117,6 @@ export class carMap<
 
   update(T: number) {
     for (let id in this.carMap) {
-      console.log(T, this.carMap[id].car.carObj.position);
       this.carMap[id].car.update(T);
     }
   }
@@ -152,6 +156,11 @@ if (typeof window !== "undefined") {
 
 export class car {
   carObj: Object3D;
+  dataSmoothing?: {
+    pos: ArraySeries<EMWA>;
+    dir: ArraySeries<EMWA>;
+    speed: ArraySeries<EMWA>;
+  };
   speed: Vector3;
   direction: Vector3;
   type?: carModelType;
@@ -165,9 +174,26 @@ export class car {
     if (carModelClass) {
       this.carObj.add(new carModelClass(this.type));
     }
+    if (Filter) {
+      this.dataSmoothing = {
+        pos: new ArraySeries<EMWA>(EMWA, 3, SMOOTH),
+        dir: new ArraySeries<EMWA>(EMWA, 3, SMOOTH),
+        speed: new ArraySeries<EMWA>(EMWA, 3, SMOOTH),
+      };
+    }
   }
 
   fit(pos: Vector3, dir: Vector3, speed: Vector3, type?: carModelType) {
+    if (Filter && this.dataSmoothing) {
+      // console.log("A", pos.toArray(), dir.toArray(), speed.toArray());
+      pos = new Vector3().fromArray(this.dataSmoothing.pos.next(pos.toArray()));
+      dir = new Vector3().fromArray(this.dataSmoothing.dir.next(dir.toArray()));
+      speed = new Vector3().fromArray(
+        this.dataSmoothing.speed.next(speed.toArray())
+      );
+      // console.log("B", pos.toArray(), dir.toArray(), speed.toArray());
+    }
+
     this.carObj.position.copy(pos);
     this.carObj.lookAt(pos.clone().add(dir));
     this.speed.copy(speed);
@@ -195,7 +221,7 @@ export class carTrail {
     this.trail = new trail(from, to);
     this.carObj = new Object3D();
     this.carObj.position.set(100, 100, 100);
-    this.carObj.rotateY(Math.PI / 2);
+    // this.carObj.rotateY(Math.PI / 2);
     this.trailObj = new Line(new BufferGeometry(), new LineBasicMaterial());
     this.reset(from, to, speed);
   }
@@ -223,6 +249,8 @@ export class carTrail {
 
     this.living = 0;
     this.carObj.clear();
+    this.carObj = new Object3D();
+    this.carObj.position.set(100, 100, 100);
     this.type = type || carModelType.random();
     if (carModelClass) {
       this.carObj.add(new carModelClass(this.type));
