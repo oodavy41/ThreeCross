@@ -6,6 +6,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   Texture,
+  Vector,
   Vector3,
 } from "three";
 import { borderRay } from "./types";
@@ -13,7 +14,7 @@ import { intersectPoint } from "./utils";
 import RoadMat from "./threeobj/roadMaterial";
 import WalkCrossMat from "./threeobj/walkCrossMaterial";
 import lane, { laneForward } from "./lane";
-import { laneInfo } from "../threescript/threeMain";
+import { crossInfo, laneInfo } from "../threescript/threeMain";
 
 const CROSS_LANE_DIS = 0.1;
 const ROAD_LENGTH = 100;
@@ -21,7 +22,6 @@ const LANE_WIDTH = 0.35;
 const CROSS_WALK_DIS = 0.5;
 
 export default class road {
-  angle: number;
   width: number;
   parent: cross;
   selfIndex: number;
@@ -33,18 +33,18 @@ export default class road {
   intersectRight?: Vector3;
   intersectLeft?: Vector3;
   crossDistance?: number;
-  crossWalkDistance: number = CROSS_WALK_DIS;
+  info: crossInfo;
   lanes!: lane[];
   lanesInfo: laneInfo[];
 
   constructor(
-    angle: number,
+    direction: Vector3,
     lanesInfo: laneInfo[],
     parent: cross,
     index: number,
-    crossWalkWidth?: number
+    info: crossInfo
   ) {
-    this.angle = angle;
+    this.direction = direction;
     this.lanesInfo = lanesInfo;
     this.width = lanesInfo.reduce(
       (pre, cur) => pre + (cur.width || LANE_WIDTH),
@@ -52,7 +52,7 @@ export default class road {
     );
     this.parent = parent;
     this.selfIndex = index;
-    crossWalkWidth && (this.crossWalkDistance = crossWalkWidth);
+    this.info = info;
     this.caculateSelfInfo();
   }
 
@@ -73,12 +73,6 @@ export default class road {
   }
 
   caculateSelfInfo() {
-    let radian = (this.angle / 180) * Math.PI;
-    this.direction = new Vector3(
-      Math.cos(radian),
-      0,
-      -Math.sin(radian)
-    ).normalize();
     this.rightDir = this.direction
       .clone()
       .cross(new Vector3(0, 1, 0))
@@ -124,13 +118,17 @@ export default class road {
       .add(this.rightDir.clone().multiplyScalar(-this.width / 2));
   }
 
-  initLanes(wc_rad: number) {
+  initLanes(wc_rad: number, crossInfo: crossInfo) {
     let rightStart = this.borderRight
       .clone()
       .add(
         this.direction
           .clone()
-          .multiplyScalar(wc_rad + this.crossWalkDistance + CROSS_LANE_DIS)
+          .multiplyScalar(
+            wc_rad +
+              (this.info.walkCrossWidth || CROSS_WALK_DIS) +
+              CROSS_LANE_DIS
+          )
       );
     this.lanes = [];
     let offset = 0;
@@ -146,7 +144,12 @@ export default class road {
           laneInfo.width || LANE_WIDTH,
           start,
           i,
-          laneInfo.signType
+          laneInfo.signType,
+          i === this.lanesInfo.length - 1 &&
+            crossInfo.rightLaneType === "divided",
+          crossInfo.walkCrossWidth! +
+            crossInfo.roadStartOffset! +
+            crossInfo.jectionRadOutter!
         )
       );
     });
@@ -205,14 +208,18 @@ export default class road {
         .add(
           this.direction
             .clone()
-            .multiplyScalar(roundRad + this.crossWalkDistance)
+            .multiplyScalar(
+              roundRad + (this.info.walkCrossWidth || CROSS_WALK_DIS)
+            )
         ),
       this.borderRight
         .clone()
         .add(
           this.direction
             .clone()
-            .multiplyScalar(roundRad + this.crossWalkDistance)
+            .multiplyScalar(
+              roundRad + (this.info.walkCrossWidth || CROSS_WALK_DIS)
+            )
         ),
     ];
     let position = points.reduce((retArr: number[], point) => {

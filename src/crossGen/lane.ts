@@ -1,4 +1,6 @@
 import {
+  RepeatWrapping,
+  MirroredRepeatWrapping,
   BufferAttribute,
   BufferGeometry,
   Color,
@@ -16,6 +18,7 @@ import {
 } from "three";
 import road from "./road";
 import LaneMat from "./threeobj/laneMaterial";
+import RoadMat from "./threeobj/roadMaterial";
 
 const LANE_LINE_WIDTH = 0.01;
 const SOLID_LENGTH = 1;
@@ -36,6 +39,7 @@ export enum laneForward {
   zhixing = 0b010,
   zhixingzuozhuan = 0b011,
   youzhuan = 0b100,
+  gelidai = 0b101,
   zhixingyouzhuan = 0b110,
   huandao = 0b111,
 }
@@ -48,12 +52,16 @@ export default class lane {
   rightDir: Vector3;
   width: number;
   forward?: laneForward;
+  divided: boolean;
+  secondSignOffset: number;
   constructor(
     parent: road,
     width: number,
     start: Vector3,
     index: number,
-    forward: laneForward
+    forward: laneForward,
+    divided = false,
+    secondSignOffset = 0
   ) {
     this.parent = parent;
     this.width = width;
@@ -62,6 +70,8 @@ export default class lane {
     this.forward = forward;
     this.index = index;
     this.start = start;
+    this.divided = divided;
+    this.secondSignOffset = secondSignOffset;
   }
 
   afterConstructor(totalLength: number, totalForward: number) {
@@ -139,13 +149,12 @@ export default class lane {
       this.parent.lanes[this.index + 1]?.forward !== laneForward.away;
     let firstAnear =
       this.forward !== laneForward.away &&
-      this.parent.lanes[this.index - 1]?.forward === laneForward.away;
-
-    let obj = new Mesh(
-      // new SphereBufferGeometry(1),
-      geo,
-
-      new LaneMat(
+      this.forward !== laneForward.gelidai &&
+      (this.parent.lanes[this.index - 1]?.forward === laneForward.away ||
+        this.parent.lanes[this.index - 1]?.forward === laneForward.gelidai);
+    let mat: THREE.Material;
+    if (this.forward !== laneForward.gelidai) {
+      mat = new LaneMat(
         new Color(0xffffff),
         new Color("yellow"),
         LANE_LINE_WIDTH,
@@ -155,26 +164,56 @@ export default class lane {
         +lastAway,
         +firstAnear,
         +(this.forward !== laneForward.away)
-      )
-    );
+      );
+    } else {
+      let grassTexture = new TextureLoader().load("./assets/grass.jpg");
+      grassTexture.wrapS = grassTexture.wrapT = RepeatWrapping;
+      mat = new RoadMat(grassTexture, 5);
+    }
+    let obj = new Mesh(geo, mat);
 
     obj.position.y += 0.003;
     obj.add(this.laneSign(pos[0].clone(), pos[1].clone()));
+    if (this.divided)
+      obj.add(
+        this.laneSign(
+          pos[0]
+            .clone()
+            .add(this.direction.clone().multiplyScalar(this.secondSignOffset)),
+          pos[1]
+            .clone()
+            .add(this.direction.clone().multiplyScalar(this.secondSignOffset)),
+          signIMG.zhixingyouzhuan
+        )
+      );
+    else
+      obj.add(
+        this.laneSign(
+          pos[0]
+            .clone()
+            .add(this.direction.clone().multiplyScalar(this.secondSignOffset)),
+          pos[1]
+            .clone()
+            .add(this.direction.clone().multiplyScalar(this.secondSignOffset))
+        )
+      );
     return obj;
   }
 
-  laneSign(rightStart: Vector3, leftStart: Vector3) {
+  laneSign(rightStart: Vector3, leftStart: Vector3, url = "") {
     if (this.forward === laneForward.away) return new Object3D();
-    let signTextureUrl = [
-      "",
-      signIMG.zuozhuan,
-      signIMG.zhixing,
-      signIMG.zhixingzuozhuan,
-      signIMG.youzhuan,
-      "",
-      signIMG.zhixingyouzhuan,
-      signIMG.huandao,
-    ][this.forward!];
+    let signTextureUrl =
+      url ||
+      [
+        "",
+        signIMG.zuozhuan,
+        signIMG.zhixing,
+        signIMG.zhixingzuozhuan,
+        signIMG.youzhuan,
+        "",
+        signIMG.zhixingyouzhuan,
+        signIMG.huandao,
+      ][this.forward!];
     let signTex = new TextureLoader().load(signTextureUrl);
     signTex.magFilter = LinearMipMapNearestFilter;
     signTex.minFilter = NearestFilter;

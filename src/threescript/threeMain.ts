@@ -8,12 +8,14 @@ import { TAARenderPass } from "three/examples/jsm/postprocessing/TAARenderPass.j
 import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader";
 import { CopyShader } from "three/examples/jsm/shaders/CopyShader.js";
-import { carManager, carMap, carPool } from "../crossGen/car";
+import { car, carManager, carMap, carPool } from "../crossGen/car";
 import cross from "../crossGen/cross";
 import FPSControl from "./FPSctrl";
 import skyCube from "./skybox";
 import { laneForward } from "../crossGen/lane";
 import { carModelType } from "../crossGen/carModelTypes";
+import { CategoryId } from "../../../../utils/configs";
+import { CarLicenseNode } from "../../../../component/licensePanel";
 
 export interface laneInfo {
   signType: laneForward;
@@ -28,6 +30,12 @@ export interface roadInfo {
 
 export interface crossInfo {
   roads: roadInfo[];
+  walkCrossWidth?: number;
+  rightLaneType?: "alone" | "divided" | "normal";
+
+  jectionRadInner?: number;
+  jectionRadOutter?: number;
+  roadStartOffset?: number;
   center: Vector3;
   rotationY: number;
   scale: number;
@@ -39,7 +47,8 @@ const ORTH_CAM_DHEIGHT = 10;
 export default function tInit(
   container: HTMLDivElement,
   emulator: boolean = true,
-  camProj: "perspective" | "orthographic" = "perspective"
+  camProj: "perspective" | "orthographic" = "perspective",
+  carsHandler?: (data: CarLicenseNode[]) => void
 ) {
   let [cWidth, cHeight] = [container.clientWidth, container.clientHeight];
 
@@ -56,6 +65,30 @@ export default function tInit(
       100
     );
   }
+  let northPtr = new THREE.Object3D();
+  let ptr = new THREE.Mesh(
+    new THREE.CylinderGeometry(0, 3, 10, 4),
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+  );
+  ptr.position.z -= 5;
+  northPtr.add(ptr);
+  let ptr2 = new THREE.Mesh(
+    new THREE.CylinderGeometry(0, 3, 10, 4),
+    new THREE.MeshBasicMaterial({ color: 0x0000ff })
+  );
+  northPtr.add(ptr2);
+  ptr2.position.z += 5;
+
+  ptr.rotateX(-Math.PI / 2);
+  ptr2.rotateX(Math.PI / 2);
+  northPtr.scale.set(0.001, 0.001, 0.001);
+  let ptrPos = new Vector3(0, -0.1, -0.3);
+
+  function updateNorthPtr() {
+    let newPos = ptrPos.clone().applyMatrix4(camera.matrixWorld);
+
+    northPtr.position.copy(newPos);
+  }
 
   let scene = new THREE.Scene();
   let renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -64,6 +97,14 @@ export default function tInit(
   let directLight = new THREE.DirectionalLight("#ffffaa", 1.0);
   directLight.lookAt(-1, -1, -1);
   scene.add(directLight);
+
+  scene.add(northPtr);
+  let gasStation = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshLambertMaterial({ color: 0xff0000 })
+  );
+  gasStation.position.set(5, 0, 1);
+  scene.add(gasStation);
 
   //skybox
   scene.background = new THREE.Color("black");
@@ -175,8 +216,8 @@ export default function tInit(
       scene.remove(crossComp.threeObj!);
     }
     const { roads, rotationY, scale, center } = info;
-    crossComp = new cross(roads);
-    scene.add(crossComp.genThreeObj());
+    crossComp = new cross(roads, info);
+    scene.add(crossComp.genThreeObj(info));
     if (emulator) {
       carMgr = new carPool(NEW_CAR_CHANCE, 100, crossComp);
     } else {
@@ -188,6 +229,10 @@ export default function tInit(
   onChangeRoadinfo({
     center: new Vector3(0, 0, 0),
     rotationY: 0,
+    walkCrossWidth: 0.5,
+    rightLaneType: "divided",
+    jectionRadOutter: 1.5,
+    roadStartOffset: 0.3,
     scale: 1,
     roads: [
       {
@@ -219,10 +264,6 @@ export default function tInit(
           },
           {
             signType: laneForward.zhixing,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.youzhuan,
             width: 0.3,
           },
         ],
@@ -258,10 +299,6 @@ export default function tInit(
             signType: laneForward.zhixing,
             width: 0.3,
           },
-          {
-            signType: laneForward.youzhuan,
-            width: 0.3,
-          },
         ],
       },
       {
@@ -293,10 +330,6 @@ export default function tInit(
           },
           {
             signType: laneForward.zhixing,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.youzhuan,
             width: 0.3,
           },
         ],
@@ -332,22 +365,54 @@ export default function tInit(
             signType: laneForward.zhixing,
             width: 0.3,
           },
-          {
-            signType: laneForward.youzhuan,
-            width: 0.3,
-          },
+          // {
+          //   signType: laneForward.youzhuan,
+          //   width: 0.3,
+          // },
         ],
       },
     ],
   });
+
+  let covertToScreenPos = (pos: Vector3) => {
+    let p = pos.clone();
+    p.project(camera);
+    return {
+      x: ((p.x + 1) / 2) * cWidth,
+      y: ((1 - p.y) / 2) * cHeight,
+      z: p.z,
+    };
+  };
+  let setCamLayer = (all: number[], layers: number[]) => {
+    all.forEach((l) => camera.layers.disable(l));
+    layers.forEach((l) => camera.layers.enable(l));
+  };
 
   function renderloop(T: number) {
     stats && stats.begin();
     let delta = ticker.tick(T);
     onResize();
     CamFpsCtrl.update(delta);
-    carMgr.update(delta);
+    let cars = carMgr.update(delta);
+    if (carsHandler) {
+      let carList: CarLicenseNode[] = cars
+        .filter((car) => car.carObj)
+        .filter((car) => camera.layers.test(car.carObj!.layers))
+        .map((c, index) => {
+          return {
+            id: index,
+            pos: c.carObj.position,
+            coord: covertToScreenPos(c.carObj.position),
+            type: c.type || 16,
+            license: c instanceof car ? c.license : "",
+          };
+        })
+        .filter((c) => c.coord.z > 0 && c.coord.z < 1);
+      console.log(carList);
+      carsHandler(carList);
+    }
     // renderer.render(scene, camera);
+    updateNorthPtr();
     composer.render();
     // scene.traverse((obj) => {});
     stats && stats.end();
@@ -366,11 +431,12 @@ export default function tInit(
       position: Vector3;
       direction: Vector3;
       speed: Vector3;
-      type?: carModelType;
+      type?: CategoryId;
+      license?: string;
     }
   >(data: { [key: string]: T }) {
     if (!emulator) {
-      (carMgr as carMap<T>).pushData(data);
+      return (carMgr as carMap<T>).pushData(data);
     }
   }
 
@@ -384,6 +450,8 @@ export default function tInit(
       onChangeRoadinfo,
       onDispatch,
       onPullFitData,
+      covertToScreenPos,
+      setCamLayer,
     },
   };
 }
