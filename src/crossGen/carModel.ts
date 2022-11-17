@@ -10,15 +10,15 @@ dracoLoader.setDecoderPath("lib/draco/");
 
 const modelMap = [
   carModelType.getUrl("lp_car"), // CAR = 0
-  carModelType.getUrl("car2"), // CAR_SUV = 1
+  carModelType.getUrl("lp_suv"), // CAR_SUV = 1
   carModelType.getUrl("van"), // VAN = 2
-  { w: 2.5, h: 3, l: 9, color: "white" }, // BUS = 3
+  carModelType.getUrl("lp_bus"), // BUS = 3
   carModelType.getUrl("bigTrunk"), // TRUCK = 4
   carModelType.getUrl("car3"), // CAR_SPECIAL = 5
   carModelType.getUrl("lp_motorcycle"), // MOTORCYCLE = 6
   carModelType.getUrl("lp_bicycle"), // BICYCLE = 7
   { w: 0.2, h: 2, l: 0.4, color: "blue" }, // RIDER = 8
-  { w: 0.3, h: 1, l: 2, color: "yellow" }, // TRICYCLE = 9
+  carModelType.getUrl("lp_tricycle"), // TRICYCLE = 9
   { w: 0.2, h: 2, l: 0.2, color: "red" }, // PEDESTRIAN = 10
   { w: 1, h: 1, l: 1, color: "red" }, // TRAFFIC_SIGNS = 11
   { w: 1, h: 1, l: 1, color: "red" }, // TRAFFIC_CONE = 12

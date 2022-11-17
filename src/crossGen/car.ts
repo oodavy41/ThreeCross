@@ -212,13 +212,14 @@ export class car {
     type?: CategoryId,
     license?: string
   ) {
-    if (Filter && this.dataSmoothing) {
-      pos = new Vector3().fromArray(this.dataSmoothing.pos.next(pos.toArray()));
-      dir = new Vector3().fromArray(this.dataSmoothing.dir.next(dir.toArray()));
-      speed = new Vector3().fromArray(
-        this.dataSmoothing.speed.next(speed.toArray())
-      );
-    }
+    // if (Filter && this.dataSmoothing) {
+    //   console.log("Filter");
+    //   pos = new Vector3().fromArray(this.dataSmoothing.pos.next(pos.toArray()));
+    //   dir = new Vector3().fromArray(this.dataSmoothing.dir.next(dir.toArray()));
+    //   speed = new Vector3().fromArray(
+    //     this.dataSmoothing.speed.next(speed.toArray())
+    //   );
+    // }
 
     this.license = license;
     this.carObj.position.copy(pos);
@@ -228,6 +229,7 @@ export class car {
       this.carObj.children = [];
       this.carObj.add(new carModelClass(type));
     }
+    console.log(dir);
   }
 
   update(t: number) {

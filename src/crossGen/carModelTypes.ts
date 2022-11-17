@@ -14,6 +14,9 @@ export const modelUrls = {
   lp_car: "assets/models/lp_car.glb",
   lp_bicycle: "assets/models/lp_bicycle.glb",
   lp_motorcycle: "assets/models/lp_motocycle.glb",
+  lp_bus: "assets/models/lp_bus.glb",
+  lp_suv: "assets/models/lp_suv.glb",
+  lp_tricycle: "assets/models/lp_tricycle.glb",
 };
 
 namespace targetTypes {

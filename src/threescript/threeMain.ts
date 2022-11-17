@@ -121,13 +121,13 @@ export default function tInit(
   renderer.outputEncoding = THREE.sRGBEncoding;
   container.appendChild(renderer.domElement);
   let stats: Stats | undefined;
-  if (process.env.NODE_ENV === "development") {
-    stats = new Stats();
-    stats.showPanel(0);
-    container.appendChild(stats.dom);
-    stats.dom.style.position = "absolute";
-    stats.dom.style.inset = "0px 0px auto auto";
-  }
+  // if (process.env.NODE_ENV === "development") {
+  stats = new Stats();
+  stats.showPanel(0);
+  container.appendChild(stats.dom);
+  stats.dom.style.position = "absolute";
+  stats.dom.style.inset = "0px 0px auto auto";
+  // }
 
   // postprocessing
 
@@ -157,12 +157,12 @@ export default function tInit(
   var effectCopy = new ShaderPass(CopyShader);
   composer.addPass(effectCopy);
 
-  camera.position.set(0, 5, 10);
-  camera.lookAt(0, -5, -10);
+  camera.position.set(0, 3, 5);
+  camera.lookAt(0, -8, -10);
   const CamFpsCtrl = new FPSControl(
     camera,
     renderer.domElement,
-    new Vector3(0, -5, -10)
+    new Vector3(0, -8, -10)
   );
 
   function onResize() {
@@ -408,7 +408,6 @@ export default function tInit(
           };
         })
         .filter((c) => c.coord.z > 0 && c.coord.z < 1);
-      console.log(carList);
       carsHandler(carList);
     }
     // renderer.render(scene, camera);

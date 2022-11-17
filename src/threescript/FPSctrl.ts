@@ -58,8 +58,8 @@ export default class FPSControl {
     camera.up = VEC_UP;
     this.forward = forward;
     this.right = this.forward.clone().cross(VEC_UP);
-    this.keyEventBind();
-    this.mouseEventBind();
+    // this.keyEventBind();
+    // this.mouseEventBind();
   }
 
   update(time: number) {
