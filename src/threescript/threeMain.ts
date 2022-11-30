@@ -36,9 +36,9 @@ export interface crossInfo {
   jectionRadInner?: number;
   jectionRadOutter?: number;
   roadStartOffset?: number;
-  center: Vector3;
-  rotationY: number;
-  scale: number;
+  // center: Vector3;
+  // rotationY: number;
+  // scale: number;
 }
 
 const NEW_CAR_CHANCE = 0.05;
@@ -121,13 +121,13 @@ export default function tInit(
   renderer.outputEncoding = THREE.sRGBEncoding;
   container.appendChild(renderer.domElement);
   let stats: Stats | undefined;
-  // if (process.env.NODE_ENV === "development") {
-  stats = new Stats();
-  stats.showPanel(0);
-  container.appendChild(stats.dom);
-  stats.dom.style.position = "absolute";
-  stats.dom.style.inset = "0px 0px auto auto";
-  // }
+  if (process.env.NODE_ENV === "development") {
+    stats = new Stats();
+    stats.showPanel(0);
+    container.appendChild(stats.dom);
+    stats.dom.style.position = "absolute";
+    stats.dom.style.inset = "0px 0px auto auto";
+  }
 
   // postprocessing
 
@@ -157,8 +157,8 @@ export default function tInit(
   var effectCopy = new ShaderPass(CopyShader);
   composer.addPass(effectCopy);
 
-  camera.position.set(0, 3, 5);
-  camera.lookAt(0, -8, -10);
+  camera.position.set(0, 3.5, 4);
+  camera.lookAt(-0.7, -11, -10);
   const CamFpsCtrl = new FPSControl(
     camera,
     renderer.domElement,
@@ -215,7 +215,7 @@ export default function tInit(
     if (crossComp) {
       scene.remove(crossComp.threeObj!);
     }
-    const { roads, rotationY, scale, center } = info;
+    const { roads } = info;
     crossComp = new cross(roads, info);
     scene.add(crossComp.genThreeObj(info));
     if (emulator) {
@@ -227,13 +227,10 @@ export default function tInit(
   };
 
   onChangeRoadinfo({
-    center: new Vector3(0, 0, 0),
-    rotationY: 0,
     walkCrossWidth: 0.5,
     rightLaneType: "divided",
     jectionRadOutter: 1.5,
     roadStartOffset: 0.3,
-    scale: 1,
     roads: [
       {
         direction: new Vector3(1, 0, 0),

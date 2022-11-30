@@ -156,7 +156,14 @@ export class carMap<
     }
     for (let id in this.carMap) {
       if (!this.carMap[id].living) {
-        this.selfObj.remove(this.carMap[id].car.carObj);
+        let rubbish = this.carMap[id].car;
+        this.selfObj.remove(rubbish.carObj);
+        rubbish.carObj.traverse((obj) => {
+          if (obj instanceof Mesh) {
+            obj.geometry.dispose();
+            obj.material.dispose();
+          }
+        });
         delete this.carMap[id];
       }
     }
@@ -229,11 +236,10 @@ export class car {
       this.carObj.children = [];
       this.carObj.add(new carModelClass(type));
     }
-    console.log(dir);
   }
 
   update(t: number) {
-    this.carObj.position.add(this.speed.clone().multiplyScalar(t));
+    this.carObj.position.add(this.speed.clone().multiplyScalar(t / 1000));
   }
 }
 
