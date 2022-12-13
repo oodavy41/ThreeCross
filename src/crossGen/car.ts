@@ -164,6 +164,7 @@ export class carMap<
             obj.material.dispose();
           }
         });
+        rubbish.carObj.visible = false;
         delete this.carMap[id];
       }
     }
@@ -183,6 +184,7 @@ if (typeof window !== "undefined") {
 
 export class car {
   carObj: Object3D;
+  carModel?: carModel;
   dataSmoothing?: {
     pos: ArraySeries<EMWA>;
     dir: ArraySeries<EMWA>;
@@ -201,7 +203,8 @@ export class car {
     this.direction = new Vector3();
     this.type = type;
     if (carModelClass) {
-      this.carObj.add(new carModelClass(this.type));
+      this.carModel = new carModelClass(type);
+      this.carObj.add(this.carModel);
     }
     if (Filter) {
       this.dataSmoothing = {
@@ -240,6 +243,11 @@ export class car {
 
   update(t: number) {
     this.carObj.position.add(this.speed.clone().multiplyScalar(t / 1000));
+  }
+  dispatch() {
+    if (this.carModel) {
+      this.carModel.dispatch();
+    }
   }
 }
 

@@ -30,12 +30,15 @@ export interface roadInfo {
 
 export interface crossInfo {
   roads: roadInfo[];
+  cameraPos: Vector3;
+  cameraLookAt: Vector3;
   walkCrossWidth?: number;
   rightLaneType?: "alone" | "divided" | "normal";
 
   jectionRadInner?: number;
   jectionRadOutter?: number;
   roadStartOffset?: number;
+  islandOffset?: number;
   // center: Vector3;
   // rotationY: number;
   // scale: number;
@@ -224,10 +227,14 @@ export default function tInit(
       carMgr = new carMap(crossComp);
     }
     crossComp.threeObj?.add(carMgr.selfObj);
+    camera.position.copy(info.cameraPos);
+    camera.lookAt(info.cameraLookAt);
   };
 
   onChangeRoadinfo({
     walkCrossWidth: 0.5,
+    cameraLookAt: new Vector3(0, 3.5, 4),
+    cameraPos: new Vector3(-0.7, -11, -10),
     rightLaneType: "divided",
     jectionRadOutter: 1.5,
     roadStartOffset: 0.3,

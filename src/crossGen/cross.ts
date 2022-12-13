@@ -185,7 +185,8 @@ export default class cross {
             roadTex,
             groundTex,
             info.walkCrossWidth,
-            info.roadStartOffset || CROSS_ROUND_RAD + 0.5,
+            (info.roadStartOffset || CROSS_ROUND_RAD + 0.5) +
+              (info.islandOffset || 0),
             info.jectionRadOutter
           )
         );
