@@ -51,28 +51,43 @@ namespace targetTypes {
     others = 14,
   }
   export function get(id: CategoryId) {
-    if (id === CategoryId.RIDER || id === CategoryId.PEDESTRIAN) {
-      return types.human;
-    } else if (
-      id === CategoryId.CAR ||
-      id === CategoryId.CAR_SUV ||
-      id === CategoryId.CAR_SPECIAL
-    ) {
-      return types.smallcar;
-    } else if (
-      id === CategoryId.BUS ||
-      id === CategoryId.TRUCK ||
-      id === CategoryId.VAN
-    ) {
-      return types.bigcar;
-    } else if (
-      id === CategoryId.MOTORCYCLE ||
-      id === CategoryId.BICYCLE ||
-      id === CategoryId.TRICYCLE
-    ) {
-      return types["non-moto"];
-    } else {
-      return types.others;
+    const typeMapper = [
+      "s",
+      "s",
+      "s",
+      "l",
+      "l",
+      "s",
+      "nm",
+      "nm",
+      "h",
+      "nm",
+      "h",
+      "o",
+      "o",
+      "o",
+      "o",
+      "l",
+      "l",
+      "l",
+      "l",
+      "l",
+      "l",
+      "l",
+      "l",
+    ];
+    switch (typeMapper[id]) {
+      case "s":
+        return types.smallcar;
+      case "l":
+        return types.bigcar;
+      case "nm":
+        return types["non-moto"];
+      case "h":
+        return types.human;
+      case "o":
+      default:
+        return types.others;
     }
   }
   export function getAll() {

@@ -1,8 +1,7 @@
 import { Group, Mesh, Object3D, BoxGeometry, MeshBasicMaterial } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-import { carModelType, targetTypes } from "./carModelTypes";
-import { CategoryId } from "../../../../utils/configs";
+import { carModelType, CategoryId, targetTypes } from "./carModelTypes";
 // import * as Draco from "three/examples/js/libs/draco/gltf"
 
 const dracoLoader = new DRACOLoader();
