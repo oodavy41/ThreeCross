@@ -11,6 +11,7 @@ import {
   Object3D,
   SphereGeometry,
   Vector,
+  Vector2,
   Vector3,
 } from "three";
 
@@ -30,7 +31,14 @@ const SMOOTH = 0.2;
 
 export interface carManager {
   selfObj: Object3D;
-  update(T: number): (car | carTrail)[];
+  update(T: number): {
+    key: string | number;
+    pos: Vector3;
+    coord: Vector3;
+    type: number;
+    license: string;
+    layers: THREE.Layers;
+  }[];
 }
 
 export class carPool implements carManager {
@@ -95,7 +103,14 @@ export class carPool implements carManager {
     if (Math.random() < this.chance) {
       this.awake();
     }
-    return this.carPool;
+    return this.carPool.map((car, idx) => ({
+      type: car.type,
+      license: idx + "",
+      coord: new Vector3(),
+      pos: car.carObj.position.clone(),
+      key: idx,
+      layers: car.carObj.layers,
+    }));
   }
 }
 
@@ -122,7 +137,17 @@ export class carMap<
     for (let id in this.carMap) {
       this.carMap[id].car.update(T);
     }
-    return Object.keys(this.carMap).map((key) => this.carMap[key].car);
+    return Object.keys(this.carMap).map((key) => {
+      let car = this.carMap[key].car;
+      return {
+        key,
+        pos: car.carObj.position.clone(),
+        coord: new Vector3(),
+        type: car.type || 0,
+        license: car.license || "",
+        layers: car.carObj.layers,
+      };
+    });
   }
 
   pushData(data: { [key: string]: T }) {

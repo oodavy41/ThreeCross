@@ -1,5 +1,28 @@
-import { CategoryId } from "../../../../utils/configs";
-
+export enum CategoryId {
+  CAR = 0,
+  CAR_SUV = 1,
+  VAN = 2,
+  BUS = 3,
+  TRUCK = 4,
+  CAR_SPECIAL = 5,
+  MOTORCYCLE = 6,
+  BICYCLE = 7,
+  RIDER = 8,
+  TRICYCLE = 9,
+  PEDESTRIAN = 10,
+  TRAFFIC_LIGHT = 11,
+  TRAFFIC_CONE = 12,
+  DONT_CARE = 13,
+  LICENSE_PLATE = 14,
+  TANKER = 15,
+  CEMENT_MIXER = 16,
+  TAXI = 17,
+  HEAVY_TRUCK = 18,
+  SANITATION_VEHICLE = 19,
+  ENGINEERING_VEHICLE_TRUCK = 20,
+  MUCK_TRUCK = 21,
+  TRUNK_TRAILER = 22,
+}
 export const modelUrls = {
   bigTrunk: "assets/models/lp_trunk.glb",
   car: "assets/models/car.glb",

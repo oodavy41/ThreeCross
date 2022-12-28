@@ -381,11 +381,11 @@ export default function tInit(
   let covertToScreenPos = (pos: Vector3) => {
     let p = pos.clone();
     p.project(camera);
-    return {
-      x: ((p.x + 1) / 2) * cWidth,
-      y: ((1 - p.y) / 2) * cHeight,
-      z: p.z,
-    };
+    return new Vector3(
+      ((p.x + 1) / 2) * cWidth,
+      ((1 - p.y) / 2) * cHeight,
+      p.z
+    );
   };
   let setCamLayer = (all: number[], layers: number[]) => {
     all.forEach((l) => camera.layers.disable(l));
@@ -400,15 +400,13 @@ export default function tInit(
     let cars = carMgr.update(delta);
     if (carsHandler) {
       let carList: CarLicenseNode[] = cars
-        .filter((car) => car.carObj)
-        .filter((car) => camera.layers.test(car.carObj!.layers))
-        .map((c, index) => {
+        .filter((c) => camera.layers.test(c.layers))
+        .map((c) => {
           return {
-            id: index,
-            pos: c.carObj.position,
-            coord: covertToScreenPos(c.carObj.position),
-            type: c.type || 16,
-            license: c instanceof car ? c.license : "",
+            pos: c.pos,
+            coord: covertToScreenPos(c.pos),
+            type: c.type || 22,
+            license: c.license,
           };
         })
         .filter((c) => c.coord.z > 0 && c.coord.z < 1);

@@ -31,6 +31,7 @@ const modelMap = [
   carModelType.getUrl("trunk"), // SANITATION_VEHICLE = 19,
   carModelType.getUrl("trunk"), // ENGINEERING_VEHICLE_TRUCK = 20,
   carModelType.getUrl("trunk"), // MUCK_TRUCK = 21,
+  carModelType.getUrl("bigTrunk"), // TRUCK_TRAILER = 22,
 ];
 
 class carModelPool {
