@@ -21,10 +21,8 @@ import trail from "./trail";
 import lane from "./lane";
 import { ClassElement } from "typescript";
 import carModel from "./carModel";
-import { carModelType, targetTypes } from "./carModelTypes";
+import { carModelType, CategoryId, targetTypes } from "./carModelTypes";
 import { ArraySeries, EMWA } from "../utils/LPF";
-import { CategoryId } from "../../../../utils/configs";
-
 const SHOW_TRAIL = false;
 const Filter = false;
 const SMOOTH = 0.2;

@@ -13,8 +13,7 @@ import cross from "../crossGen/cross";
 import FPSControl from "./FPSctrl";
 import skyCube from "./skybox";
 import { laneForward } from "../crossGen/lane";
-import { carModelType } from "../crossGen/carModelTypes";
-import { CategoryId } from "../../../../utils/configs";
+import { CategoryId, carModelType } from "../crossGen/carModelTypes";
 import { CarLicenseNode } from "../../../../component/licensePanel";
 
 export interface laneInfo {
