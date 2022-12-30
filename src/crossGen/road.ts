@@ -14,7 +14,7 @@ import { intersectPoint } from "./utils";
 import RoadMat from "./threeobj/roadMaterial";
 import WalkCrossMat from "./threeobj/walkCrossMaterial";
 import lane, { laneForward } from "./lane";
-import { crossInfo, laneInfo } from "../threescript/threeMain";
+import { crossInfo, laneInfo, roadInfo } from "../threescript/threeMain";
 
 const CROSS_LANE_DIS = 0.1;
 const ROAD_LENGTH = 100;
@@ -33,7 +33,8 @@ export default class road {
   intersectRight?: Vector3;
   intersectLeft?: Vector3;
   crossDistance?: number;
-  info: crossInfo;
+  parentInfo: crossInfo;
+  roadInfo: roadInfo;
   lanes!: lane[];
   lanesInfo: laneInfo[];
 
@@ -42,7 +43,8 @@ export default class road {
     lanesInfo: laneInfo[],
     parent: cross,
     index: number,
-    info: crossInfo
+    info: roadInfo,
+    parentinfo: crossInfo
   ) {
     this.direction = direction;
     this.lanesInfo = lanesInfo;
@@ -52,7 +54,8 @@ export default class road {
     );
     this.parent = parent;
     this.selfIndex = index;
-    this.info = info;
+    this.roadInfo = info;
+    this.parentInfo = parentinfo;
     this.caculateSelfInfo();
   }
 
@@ -126,7 +129,7 @@ export default class road {
           .clone()
           .multiplyScalar(
             wc_rad +
-              (this.info.walkCrossWidth || CROSS_WALK_DIS) +
+              (this.parentInfo.walkCrossWidth || CROSS_WALK_DIS) +
               CROSS_LANE_DIS
           )
       );
@@ -149,7 +152,8 @@ export default class road {
             crossInfo.rightLaneType === "divided",
           crossInfo.walkCrossWidth! +
             crossInfo.roadStartOffset! +
-            crossInfo.jectionRadOutter!
+            crossInfo.jectionRadOutter!,
+          laneInfo
         )
       );
     });
@@ -186,7 +190,7 @@ export default class road {
     let obj = new Mesh(geo, new RoadMat(roadTex, mapScale));
     obj.add(this.genCrossWalk(roundRad));
     this.lanes.map((v) => {
-      obj.add(v.genLinesObj(100));
+      obj.add(v.genLinesObj(100, v.info.startOffset || 0));
     });
     return obj;
   }
@@ -209,7 +213,7 @@ export default class road {
           this.direction
             .clone()
             .multiplyScalar(
-              roundRad + (this.info.walkCrossWidth || CROSS_WALK_DIS)
+              roundRad + (this.parentInfo.walkCrossWidth || CROSS_WALK_DIS)
             )
         ),
       this.borderRight
@@ -218,7 +222,7 @@ export default class road {
           this.direction
             .clone()
             .multiplyScalar(
-              roundRad + (this.info.walkCrossWidth || CROSS_WALK_DIS)
+              roundRad + (this.parentInfo.walkCrossWidth || CROSS_WALK_DIS)
             )
         ),
     ];

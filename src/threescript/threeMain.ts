@@ -19,6 +19,7 @@ import { CarLicenseNode } from "../../../../component/licensePanel";
 export interface laneInfo {
   signType: laneForward;
   width?: number;
+  startOffset?: number;
 }
 
 export interface roadInfo {
@@ -46,12 +47,19 @@ export interface crossInfo {
 const NEW_CAR_CHANCE = 0.05;
 const ORTH_CAM_DHEIGHT = 10;
 
+export interface mainConfig {
+  camProj?: "perspective" | "orthographic";
+  emulator?: boolean;
+  fps?: boolean;
+}
+
 export default function tInit(
   container: HTMLDivElement,
-  emulator: boolean = true,
-  camProj: "perspective" | "orthographic" = "perspective",
+  config: mainConfig,
   carsHandler?: (data: CarLicenseNode[]) => void
 ) {
+  let { camProj = "orthographic", emulator = false, fps = false } = config;
+
   let [cWidth, cHeight] = [container.clientWidth, container.clientHeight];
 
   let camera: THREE.Camera;
@@ -395,7 +403,7 @@ export default function tInit(
     stats && stats.begin();
     let delta = ticker.tick(T);
     onResize();
-    CamFpsCtrl.update(delta);
+    fps && CamFpsCtrl.update(delta);
     let cars = carMgr.update(delta);
     if (carsHandler) {
       let carList: CarLicenseNode[] = cars

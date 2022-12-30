@@ -10,7 +10,10 @@ function App() {
   const threeSet = useRef<ReturnType<typeof tInit> | null>(null);
   useEffect(() => {
     if (container.current && !threeSet.current) {
-      threeSet.current = tInit(container.current);
+      threeSet.current = tInit(container.current, {
+        emulator: true,
+        fps: true,
+      });
       setUpdate(Math.random());
     }
     console.log("start");

@@ -25,7 +25,14 @@ export default class cross {
       .sort((a, b) => a.roadAngle - b.roadAngle)
       .map(
         (value, index) =>
-          new road(value.direction, value.lanes, this, index, info)
+          new road(
+            value.direction,
+            value.lanes,
+            this,
+            index,
+            this.roadsInfo[index],
+            info
+          )
       );
     this.length = legalRoadsArr.length;
     this.roads.forEach((road) => {

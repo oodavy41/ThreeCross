@@ -1,3 +1,4 @@
+import { laneInfo } from './../threescript/threeMain';
 import {
   RepeatWrapping,
   MirroredRepeatWrapping,
@@ -54,6 +55,7 @@ export default class lane {
   forward?: laneForward;
   divided: boolean;
   secondSignOffset: number;
+  info: laneInfo;
   constructor(
     parent: road,
     width: number,
@@ -61,7 +63,8 @@ export default class lane {
     index: number,
     forward: laneForward,
     divided = false,
-    secondSignOffset = 0
+    secondSignOffset = 0,
+    info:laneInfo,
   ) {
     this.parent = parent;
     this.width = width;
@@ -72,6 +75,7 @@ export default class lane {
     this.start = start;
     this.divided = divided;
     this.secondSignOffset = secondSignOffset;
+    this.info = info;
   }
 
   afterConstructor(totalLength: number, totalForward: number) {
@@ -117,14 +121,16 @@ export default class lane {
     }
   }
 
-  genLinesObj(roadLength: number) {
+  genLinesObj(roadLength: number, roadStart: number = 0) {
     let pos = [
       this.start
         .clone()
-        .add(this.rightDir.clone().multiplyScalar(this.width / 2)),
+        .add(this.rightDir.clone().multiplyScalar(this.width / 2))
+        .add(this.direction.clone().multiplyScalar(roadStart)),
       this.start
         .clone()
-        .add(this.rightDir.clone().multiplyScalar(-this.width / 2)),
+        .add(this.rightDir.clone().multiplyScalar(-this.width / 2))
+        .add(this.direction.clone().multiplyScalar(roadStart)),
       this.start
         .clone()
         .add(this.rightDir.clone().multiplyScalar(-this.width / 2))

@@ -12,7 +12,7 @@ const modelMap = [
   carModelType.getUrl("lp_suv"), // CAR_SUV = 1,
   carModelType.getUrl("van"), // VAN = 2,
   carModelType.getUrl("lp_bus"), // BUS = 3,
-  carModelType.getUrl("trunk"), // TRUCK = 4,
+  carModelType.getUrl("bigTrunk"), // TRUCK = 4,
   carModelType.getUrl("car3"), // CAR_SPECIAL = 5,
   carModelType.getUrl("lp_motorcycle"), // MOTORCYCLE = 6,
   carModelType.getUrl("lp_bicycle"), // BICYCLE = 7,
@@ -27,9 +27,9 @@ const modelMap = [
   carModelType.getUrl("bigTrunk"), // CEMENT_MIXER = 16,
   carModelType.getUrl("taxi"), // TAXI = 17,
   carModelType.getUrl("bigTrunk"), // HEAVY_TRUCK = 18,
-  carModelType.getUrl("trunk"), // SANITATION_VEHICLE = 19,
-  carModelType.getUrl("trunk"), // ENGINEERING_VEHICLE_TRUCK = 20,
-  carModelType.getUrl("trunk"), // MUCK_TRUCK = 21,
+  carModelType.getUrl("bigTrunk"), // SANITATION_VEHICLE = 19,
+  carModelType.getUrl("bigTrunk"), // ENGINEERING_VEHICLE_TRUCK = 20,
+  carModelType.getUrl("bigTrunk"), // MUCK_TRUCK = 21,
   carModelType.getUrl("bigTrunk"), // TRUCK_TRAILER = 22,
 ];
 

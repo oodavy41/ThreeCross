@@ -23,6 +23,33 @@ export enum CategoryId {
   MUCK_TRUCK = 21,
   TRUNK_TRAILER = 22,
 }
+
+export const CategoryName = [
+  "CAR",
+  "CAR_SUV",
+  "VAN",
+  "BUS",
+  "TRUCK",
+  "CAR_SPECIAL",
+  "MOTORCYCLE",
+  "BICYCLE",
+  "RIDER",
+  "TRICYCLE",
+  "PEDESTRIAN",
+  "TRAFFIC_LIGHT",
+  "TRAFFIC_CONE",
+  "DONT_CARE",
+  "LICENSE_PLATE",
+  "TANKER",
+  "CEMENT_MIXER",
+  "TAXI",
+  "HEAVY_TRUCK",
+  "SANITATION_VEHICLE",
+  "ENGINEERING_VEHICLE_TRUCK",
+  "MUCK_TRUCK",
+  "TRUNK_TRAILER",
+];
+
 export const modelUrls = {
   bigTrunk: "assets/models/lp_trunk.glb",
   car: "assets/models/car.glb",
