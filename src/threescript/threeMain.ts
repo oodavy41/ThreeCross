@@ -14,7 +14,6 @@ import FPSControl from "./FPSctrl";
 import skyCube from "./skybox";
 import { laneForward } from "../crossGen/lane";
 import { CategoryId, carModelType } from "../crossGen/carModelTypes";
-import { CarLicenseNode } from "../../../../component/licensePanel";
 
 export interface laneInfo {
   signType: laneForward;
@@ -42,6 +41,13 @@ export interface crossInfo {
   // center: Vector3;
   // rotationY: number;
   // scale: number;
+}
+
+interface CarLicenseNode {
+  pos: Vector3;
+  coord?: Vector3;
+  type: CategoryId;
+  license?: string;
 }
 
 const NEW_CAR_CHANCE = 0.05;
@@ -239,34 +245,66 @@ export default function tInit(
   };
 
   onChangeRoadinfo({
-    walkCrossWidth: 0.5,
-    cameraLookAt: new Vector3(0, 3.5, 4),
-    cameraPos: new Vector3(-0.7, -11, -10),
+    walkCrossWidth: 0.6,
+    cameraPos: new Vector3(-2, 6, 4),
+    cameraLookAt: new Vector3(3, -9, -5),
     rightLaneType: "divided",
-    jectionRadOutter: 1.5,
-    roadStartOffset: 0.3,
+    jectionRadOutter: 3,
+    islandOffset: 0.5,
+    roadStartOffset: -0.03,
     roads: [
       {
-        direction: new Vector3(1, 0, 0),
+        direction: new Vector3(-0.9040036576791641, 0, 0.4275247208088586),
         lanes: [
           {
             signType: laneForward.away,
-            width: 0.4,
+            width: 0.3,
+          },
+
+          {
+            signType: laneForward.away,
+            width: 0.3,
           },
           {
             signType: laneForward.away,
-            width: 0.4,
+            width: 0.3,
           },
           {
-            signType: laneForward.away,
-            width: 0.4,
+            signType: laneForward.gelidai,
+            width: 0.33,
           },
           {
             signType: laneForward.zuozhuan,
             width: 0.3,
           },
+
           {
             signType: laneForward.zhixing,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zhixing,
+            width: 0.3,
+          },
+        ],
+      },
+      {
+        direction: new Vector3(0.5299863272000847, 0, 0.8480061868765845),
+        lanes: [
+          {
+            signType: laneForward.away,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.away,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.away,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.zuozhuan,
             width: 0.3,
           },
           {
@@ -280,26 +318,26 @@ export default function tInit(
         ],
       },
       {
-        direction: new Vector3(0, 0, -1),
+        direction: new Vector3(0.9040036576791641, 0, -0.4275247208088586),
         lanes: [
           {
             signType: laneForward.away,
-            width: 0.4,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.4,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.4,
-          },
-          {
-            signType: laneForward.zuozhuan,
             width: 0.3,
           },
           {
-            signType: laneForward.zhixing,
+            signType: laneForward.away,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.away,
+            width: 0.3,
+          },
+          {
+            signType: laneForward.gelidai,
+            width: 0.33,
+          },
+          {
+            signType: laneForward.zuozhuan,
             width: 0.3,
           },
           {
@@ -313,19 +351,19 @@ export default function tInit(
         ],
       },
       {
-        direction: new Vector3(-1, 0, 0.1),
+        direction: new Vector3(-0.5299863272000847, 0, -0.8480061868765845),
         lanes: [
           {
             signType: laneForward.away,
-            width: 0.4,
+            width: 0.3,
           },
           {
             signType: laneForward.away,
-            width: 0.4,
+            width: 0.3,
           },
           {
             signType: laneForward.away,
-            width: 0.4,
+            width: 0.3,
           },
           {
             signType: laneForward.zuozhuan,
@@ -339,47 +377,6 @@ export default function tInit(
             signType: laneForward.zhixing,
             width: 0.3,
           },
-          {
-            signType: laneForward.zhixing,
-            width: 0.3,
-          },
-        ],
-      },
-      {
-        direction: new Vector3(0, 0, 1),
-        lanes: [
-          {
-            signType: laneForward.away,
-            width: 0.4,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.4,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.4,
-          },
-          {
-            signType: laneForward.zuozhuan,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.zhixing,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.zhixing,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.zhixing,
-            width: 0.3,
-          },
-          // {
-          //   signType: laneForward.youzhuan,
-          //   width: 0.3,
-          // },
         ],
       },
     ],
@@ -405,24 +402,22 @@ export default function tInit(
     onResize();
     fps && CamFpsCtrl.update(delta);
     let cars = carMgr.update(delta);
-    if (carsHandler) {
-      let carList: CarLicenseNode[] = cars
-        .filter((c) => camera.layers.test(c.layers))
-        .map((c) => {
-          return {
-            pos: c.pos,
-            coord: covertToScreenPos(c.pos),
-            type: c.type || 22,
-            license: c.license,
-          };
-        })
-        .filter((c) => c.coord.z > 0 && c.coord.z < 1);
-      carsHandler(carList);
-    }
-    // renderer.render(scene, camera);
+    // if (carsHandler) {
+    //   let carList: CarLicenseNode[] = cars
+    //     .filter((c) => camera.layers.test(c.layers))
+    //     .map((c) => {
+    //       return {
+    //         pos: c.pos,
+    //         coord: covertToScreenPos(c.pos),
+    //         type: c.type || 22,
+    //         license: c.license,
+    //       };
+    //     })
+    //     .filter((c) => c.coord.z > 0 && c.coord.z < 1);
+    //   carsHandler(carList);
+    // }
     updateNorthPtr();
     composer.render();
-    // scene.traverse((obj) => {});
     stats && stats.end();
     return requestAnimationFrame(renderloop);
   }

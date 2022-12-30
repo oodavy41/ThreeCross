@@ -70,19 +70,30 @@ export default class trail {
   }
 
   trailGenrate(from: lane, to: lane) {
-    let midpoint =
-      from.parent === to.parent
-        ? new Vector3()
-        : intersectPoint(
-            {
-              start: from.getPoint(0),
-              direction: from.direction.clone().multiplyScalar(-1),
-            },
-            {
-              start: to.getPoint(0),
-              direction: to.direction.clone().multiplyScalar(-1),
-            }
-          );
+    let midpoint = new Vector3();
+    if (from.parent === to.parent) {
+    } else if (
+      Math.abs(from.direction.clone().dot(to.direction.clone())) - 1 <
+      0.001
+    ) {
+      midpoint = from
+        .getPoint(0)
+        .clone()
+        .add(to.getPoint(0))
+        .multiplyScalar(0.5);
+    } else {
+      midpoint = intersectPoint(
+        {
+          start: from.getPoint(0),
+          direction: from.direction.clone().multiplyScalar(-1),
+        },
+        {
+          start: to.getPoint(0),
+          direction: to.direction.clone().multiplyScalar(-1),
+        }
+      );
+    }
+
     let ctrlPoints = [
       from.getPoint(RADIUS),
       from.getPoint(from.parent.crossDistance!),

@@ -9,5 +9,3 @@ export function intersectPoint(line1: borderRay, line2: borderRay) {
     .clone()
     .add(line1.direction.clone().multiplyScalar(addition));
 }
-
-

@@ -84,7 +84,7 @@ export class carPool implements carManager {
     } else {
       let car = this.carPool[this.lastLiving + 1];
 
-      car.reset(from, to, speed);
+      car.reset(from, to, speed, Math.floor(Math.random() * 22));
       this.lastLiving++;
     }
   }
@@ -201,6 +201,7 @@ export class carMap<
 let carModelClass: undefined | (new (type: CategoryId) => carModel);
 if (typeof window !== "undefined") {
   import("./carModel").then((carModel) => {
+    console.log("load carModel");
     carModelClass = carModel.default;
   });
 }
@@ -225,6 +226,7 @@ export class car {
     this.speed = new Vector3();
     this.direction = new Vector3();
     this.type = type;
+    console.log("carModelClass", carModelClass);
     if (carModelClass) {
       this.carModel = new carModelClass(type);
       this.carObj.add(this.carModel);
@@ -284,15 +286,21 @@ export class carTrail {
   type!: CategoryId;
 
   constructor(from: lane, to: lane, speed: number) {
+    console.log("new cartrail");
     this.trail = new trail(from, to);
-    this.carObj = new Object3D();
+    // this.carObj = new Object3D();
+
+    this.carObj = new Mesh(
+      new BoxGeometry(),
+      new MeshBasicMaterial({ color: 0xff0000 })
+    );
     this.carObj.position.set(100, 100, 100);
     // this.carObj.rotateY(Math.PI / 2);
     this.trailObj = new Line(new BufferGeometry(), new LineBasicMaterial());
-    this.reset(from, to, speed);
+    this.reset(from, to, speed, Math.floor(Math.random() * 22));
   }
 
-  reset(from: lane, to: lane, speed: number, type: CategoryId = 16) {
+  reset(from: lane, to: lane, speed: number, type: CategoryId = 21) {
     this.trail.from = from;
     this.trail.to = to;
     this.speed = speed;
@@ -301,6 +309,7 @@ export class carTrail {
       this.trail.trailLine.getPoints(20)
     );
     this.trailObj.children = [];
+
     for (let i = 0; i < 20; i++) {
       this.trailObj.add(
         new ArrowHelper(
@@ -338,6 +347,7 @@ export class carTrail {
     } else {
       this.carObj.visible = false;
     }
+    console.log("update cartrail", this.carObj.position, this.carObj.visible);
     return this.living < this.lifeTime;
   }
 }
