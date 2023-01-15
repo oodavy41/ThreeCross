@@ -402,20 +402,20 @@ export default function tInit(
     onResize();
     fps && CamFpsCtrl.update(delta);
     let cars = carMgr.update(delta);
-    // if (carsHandler) {
-    //   let carList: CarLicenseNode[] = cars
-    //     .filter((c) => camera.layers.test(c.layers))
-    //     .map((c) => {
-    //       return {
-    //         pos: c.pos,
-    //         coord: covertToScreenPos(c.pos),
-    //         type: c.type || 22,
-    //         license: c.license,
-    //       };
-    //     })
-    //     .filter((c) => c.coord.z > 0 && c.coord.z < 1);
-    //   carsHandler(carList);
-    // }
+    if (carsHandler) {
+      let carList: CarLicenseNode[] = cars
+        .filter((c) => camera.layers.test(c.layers))
+        .map((c) => {
+          return {
+            pos: c.pos,
+            coord: covertToScreenPos(c.pos),
+            type: c.type || 22,
+            license: c.license,
+          };
+        })
+        .filter((c) => c.coord.z > 0 && c.coord.z < 1);
+      carsHandler(carList);
+    }
     updateNorthPtr();
     composer.render();
     stats && stats.end();

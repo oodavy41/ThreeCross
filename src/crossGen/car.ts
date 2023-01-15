@@ -226,7 +226,6 @@ export class car {
     this.speed = new Vector3();
     this.direction = new Vector3();
     this.type = type;
-    console.log("carModelClass", carModelClass);
     if (carModelClass) {
       this.carModel = new carModelClass(type);
       this.carObj.add(this.carModel);

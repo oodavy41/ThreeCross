@@ -12,26 +12,31 @@ const modelMap = [
   carModelType.getUrl("lp_suv"), // CAR_SUV = 1,
   carModelType.getUrl("van"), // VAN = 2,
   carModelType.getUrl("lp_bus"), // BUS = 3,
-  carModelType.getUrl("bigTrunk"), // TRUCK = 4,
-  carModelType.getUrl("car3"), // CAR_SPECIAL = 5,
+  carModelType.getUrl("lp_truck"), // TRUCK = 4,
+  carModelType.getUrl("lp_car"), // CAR_SPECIAL = 5,
   carModelType.getUrl("lp_motorcycle"), // MOTORCYCLE = 6,
   carModelType.getUrl("lp_bicycle"), // BICYCLE = 7,
   { w: 0.2, h: 2, l: 0.4, color: "blue" }, // RIDER = 8,
   carModelType.getUrl("lp_tricycle"), // TRICYCLE = 9,
-  { w: 0.2, h: 2, l: 0.2, color: "red" }, // PEDESTRIAN = 10,
-  { w: 1, h: 1, l: 1, color: "red" }, // TRAFFIC_LIGHT = 11,
-  { w: 1, h: 1, l: 1, color: "red" }, // TRAFFIC_CONE = 12,
+  { w: 0.2, h: 2, l: 0.2, color: "white" }, // PEDESTRIAN = 10,
+  { w: 1, h: 1, l: 1, color: "yellow" }, // TRAFFIC_LIGHT = 11,
+  { w: 1, h: 1, l: 1, color: "green" }, // TRAFFIC_CONE = 12,
   { w: 1, h: 1, l: 1, color: "red" }, // DONT_CARE = 13,
   { w: 0.1, h: 0.1, l: 0.1, color: "blue" }, // LICENSE_PLATE = 14,
-  carModelType.getUrl("bigTrunk"), // TANKER = 15,
-  carModelType.getUrl("bigTrunk"), // CEMENT_MIXER = 16,
-  carModelType.getUrl("taxi"), // TAXI = 17,
-  carModelType.getUrl("bigTrunk"), // HEAVY_TRUCK = 18,
-  carModelType.getUrl("bigTrunk"), // SANITATION_VEHICLE = 19,
-  carModelType.getUrl("bigTrunk"), // ENGINEERING_VEHICLE_TRUCK = 20,
-  carModelType.getUrl("bigTrunk"), // MUCK_TRUCK = 21,
-  carModelType.getUrl("bigTrunk"), // TRUCK_TRAILER = 22,
+  carModelType.getUrl("lp_truck"), // TANKER = 15,
+  carModelType.getUrl("lp_truck"), // CEMENT_MIXER = 16,
+  carModelType.getUrl("lp_car"), // TAXI = 17,
+  carModelType.getUrl("lp_truck"), // HEAVY_TRUCK = 18,
+  carModelType.getUrl("lp_truck"), // SANITATION_VEHICLE = 19,
+  carModelType.getUrl("lp_truck"), // ENGINEERING_VEHICLE_TRUCK = 20,
+  carModelType.getUrl("lp_truck"), // MUCK_TRUCK = 21,
+  carModelType.getUrl("lp_truck"), // TRUCK_TRAILER = 22,
 ];
+
+modelMap[1002] = { w: 0.75, h: 0.75, l: 0.75, color: "#abfa00" };
+modelMap[1001] = { w: 0.75, h: 0.75, l: 0.75, color: "#00bbcc" };
+modelMap[1003] = { w: 0.75, h: 0.75, l: 0.75, color: "#ff00ff" };
+modelMap[1004] = { w: 0.75, h: 0.75, l: 0.75, color: "#0088ff" };
 
 class carModelPool {
   meshRaw: Mesh[] = [];
@@ -52,6 +57,8 @@ class carModelPool {
   }
 
   getModel(type: CategoryId): Object3D {
+    if (type >= Object.keys(CategoryId).length / 2)
+      type === CategoryId.DONT_CARE;
     let container = new Object3D();
     let rawModel = this.meshRaw[type];
     if (!rawModel) {

@@ -51,7 +51,8 @@ export const CategoryName = [
 ];
 
 export const modelUrls = {
-  bigTrunk: "assets/models/lp_trunk.glb",
+  lp_bigTrunk: "assets/models/lp_bigtruck.glb",
+  lp_truck: "assets/models/lp_truck.glb",
   car: "assets/models/car.glb",
   car2: "assets/models/car2.glb",
   car3: "assets/models/car3.glb",
