@@ -3,11 +3,12 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
-  Mesh,
-  MeshBasicMaterial,
   Texture,
   Vector,
   Vector3,
+  Mesh,
+  SphereGeometry,
+  MeshBasicMaterial,
 } from "three";
 import { borderRay } from "./types";
 import { intersectPoint } from "./utils";
@@ -16,13 +17,14 @@ import WalkCrossMat from "./threeobj/walkCrossMaterial";
 import lane, { laneForward } from "./lane";
 import { crossInfo, laneInfo, roadInfo } from "../threescript/threeMain";
 
-const CROSS_LANE_DIS = 0.1;
-const ROAD_LENGTH = 100;
-const LANE_WIDTH = 0.35;
-const CROSS_WALK_DIS = 0.5;
+export const CROSS_LANE_DIS = 0.1;
+export const ROAD_LENGTH = 100;
+export const LANE_WIDTH = 0.35;
+export const CROSS_WALK_DIS = 0.5;
 
 export default class road {
   width: number;
+  widthWithTurner: number;
   parent: cross;
   selfIndex: number;
 
@@ -30,6 +32,10 @@ export default class road {
   rightDir!: Vector3;
   borderRight!: Vector3;
   borderLeft!: Vector3;
+  withTurnerRight!: Vector3;
+  withTurnerLeft!: Vector3;
+  leftTurnerOffset!: Vector3;
+  rightTurnerOffset!: Vector3;
   intersectRight?: Vector3;
   intersectLeft?: Vector3;
   crossDistance?: number;
@@ -48,10 +54,16 @@ export default class road {
   ) {
     this.direction = direction;
     this.lanesInfo = lanesInfo;
-    this.width = lanesInfo.reduce(
+    this.widthWithTurner = lanesInfo.reduce(
       (pre, cur) => pre + (cur.width || LANE_WIDTH),
       0
     );
+    this.width =
+      this.widthWithTurner -
+      lanesInfo
+        .filter((info) => (info.signType & 0b111000) === 0b111000)
+        .reduce((pre, cur) => pre + (cur.width || LANE_WIDTH), 0);
+    console.log(this.widthWithTurner, this.width);
     this.parent = parent;
     this.selfIndex = index;
     this.roadInfo = info;
@@ -80,13 +92,26 @@ export default class road {
       .clone()
       .cross(new Vector3(0, 1, 0))
       .normalize();
-
-    this.borderRight = new Vector3(0, 0, 0).add(
-      this.rightDir.clone().multiplyScalar(this.width / 2)
+    this.withTurnerRight = new Vector3(0, 0, 0).add(
+      this.rightDir.clone().multiplyScalar(this.widthWithTurner / 2)
     );
-    this.borderLeft = new Vector3(0, 0, 0).add(
-      this.rightDir.clone().multiplyScalar(-this.width / 2)
+    this.withTurnerLeft = new Vector3(0, 0, 0).add(
+      this.rightDir.clone().multiplyScalar(-this.widthWithTurner / 2)
     );
+    let rightOffset = 0;
+    let leftOffset = 0;
+    for (let i = 0; i < this.lanesInfo.length; i++) {
+      let laneInfo = this.lanesInfo[i];
+      if (laneInfo.signType === laneForward.turnerAway) {
+        rightOffset += laneInfo.width || LANE_WIDTH;
+      } else if (laneInfo.signType === laneForward.turnerRight) {
+        leftOffset += laneInfo.width || LANE_WIDTH;
+      }
+    }
+    this.rightTurnerOffset = this.rightDir.clone().multiplyScalar(rightOffset);
+    this.leftTurnerOffset = this.rightDir.clone().multiplyScalar(-leftOffset);
+    this.borderRight = this.withTurnerRight.clone().sub(this.rightTurnerOffset);
+    this.borderLeft = this.withTurnerLeft.clone().sub(this.leftTurnerOffset);
   }
 
   caculateSides() {
@@ -113,23 +138,28 @@ export default class road {
         this.direction?.clone().dot(value?.clone().sub(new Vector3(0, 0, 0))!)
       )
       .sort()[1];
-    this.borderRight = new Vector3(0, 0, 0)
-      .add(this.direction.clone().multiplyScalar(this.crossDistance!))
-      .add(this.rightDir.clone().multiplyScalar(this.width / 2));
-    this.borderLeft = new Vector3(0, 0, 0)
-      .add(this.direction.clone().multiplyScalar(this.crossDistance!))
-      .add(this.rightDir.clone().multiplyScalar(-this.width / 2));
+
+    [
+      this.borderRight,
+      this.borderLeft,
+      this.withTurnerRight,
+      this.withTurnerLeft,
+    ].forEach((p) =>
+      p.add(this.direction.clone().multiplyScalar(this.crossDistance!))
+    );
   }
 
-  initLanes(wc_rad: number, crossInfo: crossInfo) {
-    let rightStart = this.borderRight
+  initLanes(wc_rad: number) {
+    let rightStart = this.withTurnerRight
       .clone()
       .add(
         this.direction
           .clone()
           .multiplyScalar(
             wc_rad +
-              (this.parentInfo.walkCrossWidth || CROSS_WALK_DIS) +
+              (this.roadInfo.walkCrossWidth ||
+                this.parentInfo.walkCrossWidth ||
+                CROSS_WALK_DIS) +
               CROSS_LANE_DIS
           )
       );
@@ -149,10 +179,12 @@ export default class road {
           i,
           laneInfo.signType,
           i === this.lanesInfo.length - 1 &&
-            crossInfo.rightLaneType === "divided",
-          crossInfo.walkCrossWidth! +
-            crossInfo.roadStartOffset! +
-            crossInfo.jectionRadOutter!,
+            this.parentInfo.rightLaneType !== "normal",
+          (this.roadInfo.walkCrossWidth! || this.parentInfo.walkCrossWidth!) +
+            (this.roadInfo.startOffset ||
+              this.parentInfo.roadStartOffset ||
+              0) +
+            this.parentInfo.turnerWidth!,
           laneInfo
         )
       );
@@ -166,14 +198,14 @@ export default class road {
   }
 
   genRoadObj(roadTex: Texture, mapScale: number, roundRad: number) {
-    let points = [this.borderRight.clone(), this.borderLeft.clone()];
+    let points = [this.withTurnerRight.clone(), this.withTurnerLeft.clone()];
     points.push(
-      this.borderLeft
+      this.withTurnerLeft
         .clone()
         .add(this.direction.clone().multiplyScalar(ROAD_LENGTH))
     );
     points.push(
-      this.borderRight
+      this.withTurnerRight
         .clone()
         .add(this.direction.clone().multiplyScalar(ROAD_LENGTH))
     );
@@ -252,6 +284,7 @@ export default class road {
     geo.setIndex([0, 2, 1, 0, 3, 2]);
     let obj = new Mesh(geo, new WalkCrossMat(new Color(0xffffff), 0.1));
     obj.position.y += 0.002;
+
     return obj;
   }
 }

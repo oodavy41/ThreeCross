@@ -7,7 +7,16 @@ import { carModelType, CategoryId, targetTypes } from "./carModelTypes";
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath("lib/draco/");
 
-const modelMap = [
+const modelMap: (
+  | string
+  | {
+      w: number;
+      h: number;
+      l: number;
+      color: string;
+      opacity?: number;
+    }
+)[] = [
   carModelType.getUrl("lp_car"), // CAR = 0,
   carModelType.getUrl("lp_suv"), // CAR_SUV = 1,
   carModelType.getUrl("van"), // VAN = 2,
@@ -33,8 +42,9 @@ const modelMap = [
   carModelType.getUrl("lp_truck"), // TRUCK_TRAILER = 22,
 ];
 
-modelMap[1002] = { w: 0.75, h: 0.75, l: 0.75, color: "#abfa00" };
+modelMap[1000] = { w: 2, h: 1.5, l: 4, color: "white", opacity: 0.2 };
 modelMap[1001] = { w: 0.75, h: 0.75, l: 0.75, color: "#00bbcc" };
+modelMap[1002] = { w: 0.75, h: 0.75, l: 0.75, color: "#abfa00" };
 modelMap[1003] = { w: 0.75, h: 0.75, l: 0.75, color: "#ff00ff" };
 modelMap[1004] = { w: 0.75, h: 0.75, l: 0.75, color: "#0088ff" };
 
@@ -46,12 +56,16 @@ class carModelPool {
 
   modelOnLoad(type: CategoryId, model: Mesh) {
     console.log("modelOnLoad", type, this.modelQueue[type].length);
-    model.traverse((c) => c.layers.set(targetTypes.get(type)));
+    model.traverse((c) => {
+      c.layers.disableAll();
+      c.layers.set(targetTypes.get(type));
+    });
     this.meshRaw[type] = model;
     this.modelLoading[type] = false;
     this.modelQueue[type].forEach((container) => {
       container.visible = true;
       container.add(this.meshRaw[type].clone());
+      container.layers.set(targetTypes.get(type));
     });
     this.modelQueue[type] = [];
   }
@@ -80,7 +94,12 @@ class carModelPool {
       } else {
         let model = new Mesh(
           new BoxGeometry(source.w, source.h, source.l),
-          new MeshBasicMaterial({ color: source.color })
+          new MeshBasicMaterial({
+            color: source.color,
+            opacity: source.opacity,
+            transparent: source.opacity !== 0,
+            depthWrite: false,
+          })
         );
         model.layers.set(targetTypes.get(type));
         this.meshRaw[type] = model;
@@ -116,6 +135,7 @@ export default class carModel extends Object3D {
     this.modelType = type;
     this.model = carModel.pool.getModel(type);
     this.add(this.model);
+    this.layers.set(targetTypes.get(type));
     this.scale.set(0.06, 0.06, 0.06);
   }
 

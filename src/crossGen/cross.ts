@@ -1,4 +1,4 @@
-import road from "./road";
+import road, { ROAD_LENGTH } from "./road";
 import * as THREE from "three";
 import trail from "./trail";
 import { Vector3 } from "three";
@@ -7,7 +7,7 @@ import lane, { laneForward } from "./lane";
 import { crossInfo, roadInfo } from "../threescript/threeMain";
 import crossCorner from "./crossCorner";
 
-const CROSS_ROUND_RAD = 0.3;
+export const CROSS_ROUND_RAD = 0.3;
 
 export default class cross {
   roads: road[];
@@ -37,7 +37,9 @@ export default class cross {
     this.length = legalRoadsArr.length;
     this.roads.forEach((road) => {
       road.caculateSides();
-      road.initLanes(info.roadStartOffset || CROSS_ROUND_RAD, info);
+      road.initLanes(
+        road.roadInfo.startOffset || info.roadStartOffset || CROSS_ROUND_RAD
+      );
     });
   }
 
@@ -148,6 +150,8 @@ export default class cross {
       this.genJectionCornerGeo(rad, segments),
       new RoadMat(roadTex, mapScale)
     );
+    juctionObj.position.y += 0.004;
+
     return juctionObj;
   }
 
@@ -158,7 +162,11 @@ export default class cross {
     this.threeObj = new THREE.Object3D();
     this.threeObj.add(
       this.genJectionCornerObj(
-        Math.max(info.roadStartOffset || CROSS_ROUND_RAD),
+        Math.max(
+          ...this.roadsInfo.map((info) => info.startOffset || 0),
+          info.roadStartOffset || 0,
+          CROSS_ROUND_RAD
+        ),
         roadTex,
         mapScale,
         10
@@ -171,14 +179,15 @@ export default class cross {
         road.genRoadObj(
           roadTex,
           mapScale,
-          info.roadStartOffset || CROSS_ROUND_RAD
+          road.roadInfo.startOffset || info.roadStartOffset || CROSS_ROUND_RAD
         )
       );
 
       if (
-        info.rightLaneType === "divided" &&
+        info.rightLaneType !== "normal" &&
         info.walkCrossWidth &&
-        info.jectionRadOutter
+        info.turnerWidth &&
+        info.turnerOffset
       ) {
         let groundTex = new THREE.TextureLoader().load(
           "./assets/groundTex.jpg"
@@ -194,7 +203,8 @@ export default class cross {
             info.walkCrossWidth,
             (info.roadStartOffset || CROSS_ROUND_RAD + 0.5) +
               (info.islandOffset || 0),
-            info.jectionRadOutter
+            info.turnerWidth!,
+            info.turnerOffset
           )
         );
       }

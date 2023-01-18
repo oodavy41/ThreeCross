@@ -3,6 +3,7 @@ import {
   BoxGeometry,
   BufferGeometry,
   Color,
+  Layers,
   Line,
   LineBasicMaterial,
   Material,
@@ -30,7 +31,6 @@ const SMOOTH = 0.2;
 export interface carManager {
   selfObj: Object3D;
   update(T: number): {
-    key: string | number;
     pos: Vector3;
     coord: Vector3;
     type: number;
@@ -101,14 +101,15 @@ export class carPool implements carManager {
     if (Math.random() < this.chance) {
       this.awake();
     }
-    return this.carPool.map((car, idx) => ({
-      type: car.type,
-      license: idx + "",
-      coord: new Vector3(),
-      pos: car.carObj.position.clone(),
-      key: idx,
-      layers: car.carObj.layers,
-    }));
+    return this.carPool.map((car, idx) => {
+      return {
+        type: car.type,
+        license: idx + "",
+        coord: new Vector3(),
+        pos: car.carObj.position.clone(),
+        layers: car.carObj.layers,
+      };
+    });
   }
 }
 
@@ -138,7 +139,6 @@ export class carMap<
     return Object.keys(this.carMap).map((key) => {
       let car = this.carMap[key].car;
       return {
-        key,
         pos: car.carObj.position.clone(),
         coord: new Vector3(),
         type: car.type || 0,
@@ -262,6 +262,7 @@ export class car {
     if (type && this.type !== type && carModelClass) {
       this.carObj.children = [];
       this.carObj.add(new carModelClass(type));
+      this.carObj.layers.set(targetTypes.get(type));
     }
   }
 

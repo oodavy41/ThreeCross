@@ -5,7 +5,7 @@ import road from "./road";
 import RoadMat from "./threeobj/roadMaterial";
 import WalkCrossMat from "./threeobj/walkCrossMaterial";
 
-const OUTTER_SEGMENT = 10;
+const OUTTER_SEGMENT = 20;
 
 export default function crossCorner(
   rightRoad: road,
@@ -13,8 +13,9 @@ export default function crossCorner(
   raodTex: THREE.Texture,
   groundTex: THREE.Texture,
   walkCrossWidth: number,
-  offset: number,
-  distance: number
+  walkCrossOffset: number,
+  turnerDistance: number,
+  turnerOffset: number
 ) {
   let OBJ = new THREE.Object3D();
 
@@ -23,8 +24,9 @@ export default function crossCorner(
   let rightStart = rightRoad.borderLeft.clone();
   let leftStart = leftRoad.borderRight.clone();
   let islandCurve: THREE.Curve<Vector3> = new THREE.Curve();
-  let islandMid: THREE.Vector3 = new THREE.Vector3();
-  let walkCrossNormal: THREE.Vector3 = new THREE.Vector3();
+  let islandMid = new THREE.Vector3();
+  let walkCrossNormal = new THREE.Vector3();
+  let walkCrossDir = new THREE.Vector3();
 
   function genObj(
     geo: THREE.BufferGeometry,
@@ -35,29 +37,27 @@ export default function crossCorner(
     return obj;
   }
 
-  function rightRoadGeo(width: number) {
+  function rightRoadGeo() {
     let geo = new THREE.BufferGeometry();
     let points: Vector3[] = [],
       indices: number[] = [];
     let offset = points.length;
-    let rightPoint = rightStart
-      .clone()
-      .add(rightDir.clone().multiplyScalar(width));
-    let leftPoint = leftStart
-      .clone()
-      .add(leftDir.clone().multiplyScalar(width));
-    islandMid = rightPoint.clone().add(leftPoint).multiplyScalar(0.5);
-    rightPoint = rightPoint
-      .clone()
-      .add(rightDir.clone().multiplyScalar(distance));
-    leftPoint = leftPoint.clone().add(leftDir.clone().multiplyScalar(distance));
 
-    islandCurve = new THREE.QuadraticBezierCurve3(
-      rightPoint,
-      islandMid,
-      leftPoint
-    );
-    let curveArr = islandCurve.getPoints(OUTTER_SEGMENT);
+    let curveMid = islandMid
+      .clone()
+      .add(walkCrossDir.clone().multiplyScalar(turnerDistance));
+    let start = rightStart
+      .clone()
+      .add(rightDir.clone().multiplyScalar(turnerOffset));
+    let end = leftStart
+      .clone()
+      .add(leftDir.clone().multiplyScalar(turnerOffset));
+
+    islandCurve = new THREE.CatmullRomCurve3([start, curveMid, end]);
+    let curveArr = [
+      0, 0.2, 0.3, 0.35, 0.4, 0.45, 0.475, 0.5, 0.525, 0.55, 0.6, 0.65, 0.7,
+      0.8, 1,
+    ].map((pos) => islandCurve.getPoint(pos));
 
     points.push(rightRoad.intersectLeft!);
     points.push(...curveArr);
@@ -90,7 +90,9 @@ export default function crossCorner(
       .clone()
       .add(leftDir.clone().multiplyScalar(distance));
 
+    islandMid = rightPoint.clone().add(leftPoint).multiplyScalar(0.5);
     walkCrossNormal = rightPoint.clone().sub(leftPoint).normalize();
+    walkCrossDir = new Vector3(0, 1, 0).cross(walkCrossNormal).normalize();
 
     points.push(mid, rightPoint, leftPoint);
     indices.push(offset, offset + 1, offset + 2);
@@ -110,7 +112,6 @@ export default function crossCorner(
   function rightWalkCrossObj(walkCrossWidth: number) {
     let geo = new THREE.BufferGeometry();
     let curveMid = islandCurve.getPoint(0.5);
-    let walkCrossDir = new Vector3(0, 1, 0).cross(walkCrossNormal).normalize();
     let walkCrossLength = islandMid.clone().sub(curveMid).dot(walkCrossDir);
     let points = [
       islandMid
@@ -160,11 +161,15 @@ export default function crossCorner(
     return obj;
   }
 
-  let rightRoadObj = genObj(rightRoadGeo(walkCrossWidth + offset), raodTex, 5);
-  let islandObj = genObj(islandGeo(walkCrossWidth + offset), groundTex, 10);
+  let islandObj = genObj(
+    islandGeo(walkCrossWidth + walkCrossOffset),
+    groundTex,
+    10
+  );
+  let rightRoadObj = genObj(rightRoadGeo(), raodTex, 5);
   let wcOBJ = rightWalkCrossObj(walkCrossWidth);
-  islandObj.position.y -= 0.001;
-  rightRoadObj.position.y -= 0.002;
+  islandObj.position.y += 0.003;
+  rightRoadObj.position.y -= 0.001;
 
   OBJ.add(rightRoadObj, islandObj, wcOBJ);
   return OBJ;

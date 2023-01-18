@@ -23,6 +23,7 @@ export interface laneInfo {
 
 export interface roadInfo {
   lanes: laneInfo[];
+  startOffset?: number;
   direction: Vector3;
   walkCrossWidth?: number;
 }
@@ -34,8 +35,9 @@ export interface crossInfo {
   walkCrossWidth?: number;
   rightLaneType?: "alone" | "divided" | "normal";
 
-  jectionRadInner?: number;
-  jectionRadOutter?: number;
+  turnerWidth?: number;
+  turnerLaneWidth?: number;
+  turnerOffset?: number;
   roadStartOffset?: number;
   islandOffset?: number;
   // center: Vector3;
@@ -46,7 +48,6 @@ export interface crossInfo {
 interface CarLicenseNode {
   pos: Vector3;
   coord?: Vector3;
-  type: CategoryId;
   license?: string;
 }
 
@@ -249,7 +250,8 @@ export default function tInit(
     cameraPos: new Vector3(-2, 6, 4),
     cameraLookAt: new Vector3(3, -9, -5),
     rightLaneType: "divided",
-    jectionRadOutter: 3,
+    turnerWidth: 2,
+    turnerOffset: 3,
     islandOffset: 0.5,
     roadStartOffset: -0.03,
     roads: [
@@ -404,12 +406,13 @@ export default function tInit(
     let cars = carMgr.update(delta);
     if (carsHandler) {
       let carList: CarLicenseNode[] = cars
-        .filter((c) => camera.layers.test(c.layers))
+        .filter((c) => {
+          return camera.layers.test(c.layers);
+        })
         .map((c) => {
           return {
             pos: c.pos,
             coord: covertToScreenPos(c.pos),
-            type: c.type || 22,
             license: c.license,
           };
         })

@@ -1,4 +1,4 @@
-import { laneInfo } from './../threescript/threeMain';
+import { laneInfo } from "./../threescript/threeMain";
 import {
   RepeatWrapping,
   MirroredRepeatWrapping,
@@ -35,14 +35,16 @@ const signIMG = {
 };
 
 export enum laneForward {
-  away = 0,
-  zuozhuan = 0b001,
-  zhixing = 0b010,
-  zhixingzuozhuan = 0b011,
-  youzhuan = 0b100,
-  gelidai = 0b101,
-  zhixingyouzhuan = 0b110,
-  huandao = 0b111,
+  away = 0b100000,
+  zuozhuan = 0b000100,
+  zhixing = 0b000010,
+  zhixingzuozhuan = 0b000110,
+  youzhuan = 0b000001,
+  zhixingyouzhuan = 0b000011,
+  huandao = 0b000111,
+  gelidai = 0b110000,
+  turnerAway = 0b111000,
+  turnerRight = 0b111001,
 }
 
 export default class lane {
@@ -64,7 +66,7 @@ export default class lane {
     forward: laneForward,
     divided = false,
     secondSignOffset = 0,
-    info:laneInfo,
+    info: laneInfo
   ) {
     this.parent = parent;
     this.width = width;
@@ -159,7 +161,7 @@ export default class lane {
       (this.parent.lanes[this.index - 1]?.forward === laneForward.away ||
         this.parent.lanes[this.index - 1]?.forward === laneForward.gelidai);
     let mat: THREE.Material;
-    if (this.forward !== laneForward.gelidai) {
+    if (this.forward! <= 32) {
       mat = new LaneMat(
         new Color(0xffffff),
         new Color("yellow"),
@@ -169,16 +171,22 @@ export default class lane {
         pos[1],
         +lastAway,
         +firstAnear,
-        +(this.forward !== laneForward.away)
+        +((this.forward! & 0b000111) > 0)
       );
-    } else {
+    } else if (this.forward === laneForward.gelidai) {
       let grassTexture = new TextureLoader().load("./assets/grass.jpg");
       grassTexture.wrapS = grassTexture.wrapT = RepeatWrapping;
       mat = new RoadMat(grassTexture, 5);
+    } else {
+      mat = new MeshBasicMaterial({
+        color: 0x000000,
+        opacity: 0,
+        transparent: true,
+      });
     }
     let obj = new Mesh(geo, mat);
 
-    obj.position.y += 0.003;
+    obj.position.y += 0.002;
     obj.add(this.laneSign(pos[0].clone(), pos[1].clone()));
     if (this.divided)
       obj.add(
