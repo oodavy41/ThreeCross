@@ -33,7 +33,6 @@ const signIMG = {
   zhixingzuozhuan: "./assets/zhihangzuozhuan.png",
   zuozhuan: "./assets/zuozhuan.png",
 };
-
 export enum laneForward {
   away = 0b100000,
   zuozhuan = 0b000100,
@@ -46,6 +45,16 @@ export enum laneForward {
   turnerAway = 0b111000,
   turnerRight = 0b111001,
 }
+
+const signMap: { [key in laneForward]?: (string | undefined)[] } = {
+  [laneForward.zuozhuan]: [signIMG.zuozhuan],
+  [laneForward.zhixing]: [signIMG.zhixing, signIMG.zhixingyouzhuan],
+  [laneForward.zhixingzuozhuan]: [signIMG.zhixingzuozhuan],
+  [laneForward.youzhuan]: [signIMG.youzhuan],
+  [laneForward.zhixingyouzhuan]: [signIMG.zhixingyouzhuan],
+  [laneForward.huandao]: [signIMG.huandao],
+  [laneForward.turnerRight]: [undefined, signIMG.youzhuan],
+};
 
 export default class lane {
   parent: road;
@@ -197,7 +206,7 @@ export default class lane {
           pos[1]
             .clone()
             .add(this.direction.clone().multiplyScalar(this.secondSignOffset)),
-          signIMG.zhixingyouzhuan
+          1
         )
       );
     else
@@ -214,20 +223,13 @@ export default class lane {
     return obj;
   }
 
-  laneSign(rightStart: Vector3, leftStart: Vector3, url = "") {
+  laneSign(rightStart: Vector3, leftStart: Vector3, usingIdx: number = 0) {
     if (this.forward === laneForward.away) return new Object3D();
-    let signTextureUrl =
-      url ||
-      [
-        "",
-        signIMG.zuozhuan,
-        signIMG.zhixing,
-        signIMG.zhixingzuozhuan,
-        signIMG.youzhuan,
-        "",
-        signIMG.zhixingyouzhuan,
-        signIMG.huandao,
-      ][this.forward!];
+    let signTextureUrl = this.forward
+      ? signMap[this.forward]
+        ? signMap[this.forward]![usingIdx] || ""
+        : ""
+      : "";
     let signTex = new TextureLoader().load(signTextureUrl);
     signTex.magFilter = LinearMipMapNearestFilter;
     signTex.minFilter = NearestFilter;

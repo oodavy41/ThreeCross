@@ -63,7 +63,6 @@ export default class road {
       lanesInfo
         .filter((info) => (info.signType & 0b111000) === 0b111000)
         .reduce((pre, cur) => pre + (cur.width || LANE_WIDTH), 0);
-    console.log(this.widthWithTurner, this.width);
     this.parent = parent;
     this.selfIndex = index;
     this.roadInfo = info;
@@ -165,7 +164,8 @@ export default class road {
       );
     this.lanes = [];
     let offset = 0;
-    this.lanesInfo.forEach((laneInfo, i) => {
+    this.lanesInfo.forEach((laneInfo, i, arr) => {
+      let length = arr.length;
       let width = laneInfo.width || LANE_WIDTH;
       let start = rightStart
         .clone()
@@ -178,8 +178,10 @@ export default class road {
           start,
           i,
           laneInfo.signType,
-          i === this.lanesInfo.length - 1 &&
-            this.parentInfo.rightLaneType !== "normal",
+          this.parentInfo.rightLaneType !== "normal"
+            ? i === length - 1 ||
+              (i === length - 2 && (arr[i + 1].signType & 0b011) === 0b001)
+            : false,
           (this.roadInfo.walkCrossWidth! || this.parentInfo.walkCrossWidth!) +
             (this.roadInfo.startOffset ||
               this.parentInfo.roadStartOffset ||

@@ -1,53 +1,47 @@
 export enum CategoryId {
-  CAR = 0,
-  CAR_SUV = 1,
-  VAN = 2,
-  BUS = 3,
-  TRUCK = 4,
-  CAR_SPECIAL = 5,
-  MOTORCYCLE = 6,
-  BICYCLE = 7,
-  RIDER = 8,
-  TRICYCLE = 9,
-  PEDESTRIAN = 10,
-  TRAFFIC_LIGHT = 11,
-  TRAFFIC_CONE = 12,
-  DONT_CARE = 13,
-  LICENSE_PLATE = 14,
-  TANKER = 15,
-  CEMENT_MIXER = 16,
-  TAXI = 17,
-  HEAVY_TRUCK = 18,
-  SANITATION_VEHICLE = 19,
-  ENGINEERING_VEHICLE_TRUCK = 20,
-  MUCK_TRUCK = 21,
-  TRUNK_TRAILER = 22,
+  "CAR" = 0,
+  "SUV" = 1,
+  "VAN" = 2,
+  "BUS" = 3,
+  "TRUCK" = 4,
+  "MOTORCYCLE" = 5,
+  "BICYCLE" = 6,
+  "TRICYCLE" = 7,
+  "PEDESTRIAN" = 8,
+  "TRAFFIC_CONE" = 9,
+  "DONT_CARE" = 10,
+  "LICENSE_PLATE" = 11,
+  "TANKER" = 12,
+  "CEMENT_MIXER" = 13,
+  "TAXI" = 14,
+  "HEAVY_TRUCK" = 15,
+  "SANITATION_VEHICLE" = 16,
+  "ENGINEERING_VEHICLE" = 17,
+  "MUCK_TRUCK" = 18,
+  "TRUCK_TRAILER" = 19,
 }
 
 export const CategoryName = [
-  "CAR",
-  "CAR_SUV",
-  "VAN",
-  "BUS",
-  "TRUCK",
-  "CAR_SPECIAL",
-  "MOTORCYCLE",
-  "BICYCLE",
-  "RIDER",
-  "TRICYCLE",
-  "PEDESTRIAN",
-  "TRAFFIC_LIGHT",
-  "TRAFFIC_CONE",
-  "DONT_CARE",
-  "LICENSE_PLATE",
-  "TANKER",
-  "CEMENT_MIXER",
-  "TAXI",
-  "HEAVY_TRUCK",
-  "SANITATION_VEHICLE",
-  "ENGINEERING_VEHICLE_TRUCK",
-  "MUCK_TRUCK",
-  "TRUNK_TRAILER",
+  "CAR", // s
+  "SUV", // s
+  "VAN", // s
+  "BUS", // l
+  "TRUCK", // l
+  "MOTORCYCLE", // nm
+  "BICYCLE", // nm
+  "TRICYCLE", // nm
+  "PEDESTRIAN", // h
+  "TRAFFIC_CONE", // o
+  "DONT_CARE", // o
+  "LICENSE_PLATE", // o
+  "TANKER", // l
+  "CEMENT_MIXER", // l
+  "TAXI", //s
+  "HEAVY_TRUCK", // l
+  "SANITATION_VEHICLE", // l
+  "ENGINEERING_VEHICLE", // l
+  "MUCK_TRUCK", // l
+  "TRUCK_TRAILER", // l
 ];
 
 export const modelUrls = {
@@ -85,19 +79,16 @@ namespace targetTypes {
       "s",
       "l",
       "l",
+      "nm",
+      "nm",
+      "nm",
+      "h",
+      "o",
+      "o",
+      "o",
+      "l",
+      "l",
       "s",
-      "nm",
-      "nm",
-      "h",
-      "nm",
-      "h",
-      "o",
-      "o",
-      "o",
-      "o",
-      "l",
-      "l",
-      "l",
       "l",
       "l",
       "l",
