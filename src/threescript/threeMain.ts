@@ -52,7 +52,7 @@ interface CarLicenseNode {
 }
 
 const NEW_CAR_CHANCE = 0.05;
-const ORTH_CAM_DHEIGHT = 10;
+const ORTH_CAM_DHEIGHT = 7;
 
 export interface mainConfig {
   camProj?: "perspective" | "orthographic";
@@ -98,12 +98,15 @@ export default function tInit(
 
   ptr.rotateX(-Math.PI / 2);
   ptr2.rotateX(Math.PI / 2);
-  northPtr.scale.set(0.001, 0.001, 0.001);
-  let ptrPos = new Vector3(0, -0.1, -0.3);
+  let northPtrScale = camProj === "perspective" ? 0.001 : 0.02;
+  northPtr.scale.set(northPtrScale, northPtrScale, northPtrScale);
+  let ptrPos =
+    camProj === "perspective"
+      ? new Vector3(0, -0.1, -0.3)
+      : new Vector3(0, -3, -3);
 
   function updateNorthPtr() {
     let newPos = ptrPos.clone().applyMatrix4(camera.matrixWorld);
-
     northPtr.position.copy(newPos);
   }
 
@@ -116,12 +119,12 @@ export default function tInit(
   scene.add(directLight);
 
   scene.add(northPtr);
-  let gasStation = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({ color: 0xff0000 })
-  );
-  gasStation.position.set(5, 0, 1);
-  scene.add(gasStation);
+  // let gasStation = new THREE.Mesh(
+  //   new THREE.BoxGeometry(1, 1, 1),
+  //   new THREE.MeshLambertMaterial({ color: 0xff0000 })
+  // );
+  // gasStation.position.set(5, 0, 1);
+  // scene.add(gasStation);
 
   //skybox
   scene.background = new THREE.Color("black");
@@ -174,12 +177,12 @@ export default function tInit(
   var effectCopy = new ShaderPass(CopyShader);
   composer.addPass(effectCopy);
 
-  camera.position.set(0, 3.5, 4);
-  camera.lookAt(-0.7, -11, -10);
+  camera.position.set(0, 3.5, 0);
+  camera.lookAt(0, -3.5, 0);
   const CamFpsCtrl = new FPSControl(
     camera,
     renderer.domElement,
-    new Vector3(0, -8, -10)
+    new Vector3(0, -1, 0)
   );
 
   function onResize() {
@@ -416,7 +419,9 @@ export default function tInit(
             license: c.license,
           };
         })
-        .filter((c) => c.coord.z > 0 && c.coord.z < 1);
+        .filter((c) =>
+          camProj === "perspective" ? c.coord.z > 0 && c.coord.z < 1 : true
+        );
       carsHandler(carList);
     }
     updateNorthPtr();
