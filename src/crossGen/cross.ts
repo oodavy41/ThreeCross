@@ -93,7 +93,7 @@ export default class cross {
     return geo;
   }
 
-  genJectionGroundObj(roadTex: THREE.Texture, mapScale: number) {
+  genJunctionGroundObj(roadTex: THREE.Texture, mapScale: number) {
     let juctionObj = new THREE.Mesh(
       this.genJuctionGroundGeo(),
       new RoadMat(roadTex, mapScale)
@@ -101,7 +101,7 @@ export default class cross {
     return juctionObj;
   }
 
-  genJectionCornerGeo(width: number, segments: number) {
+  genJunctionCornerGeo(width: number, segments: number) {
     let geo = new THREE.BufferGeometry();
     let points: Vector3[] = [],
       indices: number[] = [];
@@ -140,14 +140,14 @@ export default class cross {
     return geo;
   }
 
-  genJectionCornerObj(
+  genJunctionCornerObj(
     rad: number,
     roadTex: THREE.Texture,
     mapScale: number,
     segments = 5
   ) {
     let juctionObj = new THREE.Mesh(
-      this.genJectionCornerGeo(rad, segments),
+      this.genJunctionCornerGeo(rad, segments),
       new RoadMat(roadTex, mapScale)
     );
     juctionObj.position.y += 0.004;
@@ -161,7 +161,7 @@ export default class cross {
     let mapScale = 5;
     this.threeObj = new THREE.Object3D();
     this.threeObj.add(
-      this.genJectionCornerObj(
+      this.genJunctionCornerObj(
         Math.max(
           ...this.roadsInfo.map((info) => info.startOffset || 0),
           info.roadStartOffset || 0,
@@ -172,7 +172,7 @@ export default class cross {
         10
       )
     );
-    this.threeObj.add(this.genJectionGroundObj(roadTex, mapScale));
+    this.threeObj.add(this.genJunctionGroundObj(roadTex, mapScale));
 
     this.roads.forEach((road, index, roads) => {
       this.threeObj?.add(

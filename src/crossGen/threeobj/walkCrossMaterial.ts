@@ -35,8 +35,8 @@ export default class WalkCrossMat extends ShaderMaterial {
       vertexShader: vert,
       fragmentShader: frag,
       // wireframe:true,
-      transparent:true,
-      depthWrite:false,
+      transparent: true,
+      depthWrite: false,
     });
   }
 }
