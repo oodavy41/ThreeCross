@@ -56,6 +56,9 @@ class carModelPool {
     model.traverse((c) => {
       c.layers.disableAll();
       c.layers.set(targetTypes.get(type));
+      if (c instanceof Mesh) {
+        c.geometry && c.geometry.computeBoundingBox();
+      }
     });
     this.meshRaw[type] = model;
     this.modelLoading[type] = false;

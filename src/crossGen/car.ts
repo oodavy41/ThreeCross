@@ -28,18 +28,19 @@ const SHOW_TRAIL = false;
 const Filter = false;
 const SMOOTH = 0.2;
 
-export interface carManager {
+export interface carManager<userDataType> {
   selfObj: Object3D;
   update(T: number): {
     pos: Vector3;
     coord: Vector3;
     type: number;
-    license: string;
     layers: THREE.Layers;
+    userdata?: userDataType;
   }[];
+  getCar(id: string): car<userDataType> | carTrail | undefined;
 }
 
-export class carPool implements carManager {
+export class carPool implements carManager<void> {
   selfObj: Object3D;
   limit: number;
   chance: number;
@@ -111,21 +112,25 @@ export class carPool implements carManager {
       };
     });
   }
+  getCar(id: string): carTrail | undefined {
+    return this.carPool.find((car) => car.carObj.uuid === id);
+  }
 }
 
 export class carMap<
+  Q,
   T extends {
     position: Vector3;
     direction: Vector3;
     speed: Vector3;
     type?: CategoryId;
-    license?: string;
+    userdata: Q;
   }
-> implements carManager
+> implements carManager<Q>
 {
   selfObj: Object3D;
   cross: cross;
-  carMap: { [key: string]: { car: car; living: boolean } };
+  carMap: { [key: string]: { car: car<Q>; living: boolean } };
   constructor(parent: cross) {
     this.selfObj = new Object3D();
     this.cross = parent;
@@ -142,10 +147,17 @@ export class carMap<
         pos: car.carObj.position.clone(),
         coord: new Vector3(),
         type: car.type || 0,
-        license: car.license || "",
+        userdata: car.userData || undefined,
         layers: car.carObj.layers,
       };
     });
+  }
+
+  getCar(id: string): car<Q> | undefined {
+    let resultId = Object.keys(this.carMap).find(
+      (key) => this.carMap[key].car.carObj.uuid === id
+    );
+    return resultId ? this.carMap[resultId]?.car : undefined;
   }
 
   pushData(data: { [key: string]: T }) {
@@ -160,18 +172,18 @@ export class carMap<
           carData.position,
           carData.direction,
           carData.speed,
-          carData.type,
-          carData.license
+          carData.type || 0,
+          carData.userdata
         );
         this.carMap[uuid].living = true;
       } else {
-        let carObj = new car(carData.type);
+        let carObj = new car<Q>(carData.type);
         carObj.fit(
           carData.position,
           carData.direction,
           carData.speed,
-          carData.type,
-          carData.license
+          carData.type || 0,
+          carData.userdata
         );
         this.selfObj.add(carObj.carObj);
         this.carMap[uuid] = { car: carObj, living: true };
@@ -206,7 +218,7 @@ if (typeof window !== "undefined") {
   });
 }
 
-export class car {
+export class car<UserDataType> {
   carObj: Object3D;
   carModel?: carModel;
   dataSmoothing?: {
@@ -217,10 +229,19 @@ export class car {
   speed: Vector3;
   direction: Vector3;
   type?: CategoryId;
-  license?: string;
+  userData?: UserDataType;
 
   constructor(type: CategoryId = 16) {
-    this.carObj = new Object3D();
+    // this.carObj = new Object3D();
+    this.carObj = new Mesh(
+      new BoxGeometry(0.3, 0.2, 0.6),
+      new MeshBasicMaterial({
+        color: 0x0,
+        opacity: 0,
+        transparent: true,
+        depthWrite: false,
+      })
+    );
     this.carObj.layers.set(targetTypes.get(type));
     this.carObj.rotateY(Math.PI / 2);
     this.speed = new Vector3();
@@ -243,8 +264,8 @@ export class car {
     pos: Vector3,
     dir: Vector3,
     speed: Vector3,
-    type?: CategoryId,
-    license?: string
+    type: CategoryId,
+    userdata: UserDataType
   ) {
     // if (Filter && this.dataSmoothing) {
     //   console.log("Filter");
@@ -255,7 +276,6 @@ export class car {
     //   );
     // }
 
-    this.license = license;
     this.carObj.position.copy(pos);
     this.carObj.lookAt(pos.clone().add(dir));
     this.speed.copy(speed);
@@ -264,6 +284,7 @@ export class car {
       this.carObj.add(new carModelClass(type));
       this.carObj.layers.set(targetTypes.get(type));
     }
+    this.userData = userdata;
   }
 
   update(t: number) {

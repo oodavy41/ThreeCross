@@ -1,6 +1,6 @@
 import Stats from "stats.js";
 import * as THREE from "three";
-import { Vector3 } from "three";
+import { Vector2, Vector3 } from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
@@ -51,6 +51,14 @@ interface CarLicenseNode {
   license?: string;
 }
 
+type carRawType<UserDataType> = {
+  position: Vector3;
+  direction: Vector3;
+  speed: Vector3;
+  type?: CategoryId;
+  userdata: UserDataType;
+};
+
 const NEW_CAR_CHANCE = 0.05;
 const ORTH_CAM_DHEIGHT = 7;
 
@@ -60,10 +68,11 @@ export interface mainConfig {
   fps?: boolean;
 }
 
-export default function tInit(
+export default function tInit<carDataType extends { license: string }>(
   container: HTMLDivElement,
   config: mainConfig,
-  carsHandler?: (data: CarLicenseNode[]) => void
+  carsHandler?: (data: CarLicenseNode[]) => void,
+  carPicked?: (data: carDataType | undefined) => void
 ) {
   let { camProj = "orthographic", emulator = false, fps = false } = config;
 
@@ -210,6 +219,7 @@ export default function tInit(
       composer.setSize(cWidth, cHeight);
     }
   }
+
   let ticker = (() => {
     let last = 0,
       start = 0,
@@ -229,7 +239,7 @@ export default function tInit(
     };
   })();
 
-  let crossComp: cross, carMgr: carManager;
+  let crossComp: cross, carMgr: carManager<carDataType>;
 
   let onChangeRoadinfo = (info: crossInfo) => {
     if (crossComp) {
@@ -241,7 +251,7 @@ export default function tInit(
     if (emulator) {
       carMgr = new carPool(NEW_CAR_CHANCE, 100, crossComp);
     } else {
-      carMgr = new carMap(crossComp);
+      carMgr = new carMap<carDataType, carRawType<carDataType>>(crossComp);
     }
     crossComp.threeObj?.add(carMgr.selfObj);
     camera.position.copy(info.cameraPos);
@@ -387,6 +397,29 @@ export default function tInit(
     ],
   });
 
+  const carpickRaycaster = new THREE.Raycaster();
+  if (!(fps || emulator) && carPicked) {
+    renderer.domElement.addEventListener("click", (e) => {
+      let x = (e.offsetX / cWidth) * 2 - 1;
+      let y = -(e.offsetY / cHeight) * 2 + 1;
+      carpickRaycaster.setFromCamera(new Vector2(x, y), camera);
+      const intersects = carpickRaycaster.intersectObjects(
+        carMgr.selfObj.children,
+        false
+      );
+      if (intersects.length > 0) {
+        let uuid = intersects[0].object.uuid;
+        let car = carMgr.getCar(uuid);
+        if (car) {
+          let userdata = (car as car<carDataType>).userData!;
+          userdata && carPicked(userdata);
+          return;
+        }
+      }
+      carPicked(undefined);
+    });
+  }
+
   let covertToScreenPos = (pos: Vector3) => {
     let p = pos.clone();
     p.project(camera);
@@ -397,8 +430,14 @@ export default function tInit(
     );
   };
   let setCamLayer = (all: number[], layers: number[]) => {
-    all.forEach((l) => camera.layers.disable(l));
-    layers.forEach((l) => camera.layers.enable(l));
+    all.forEach((l) => {
+      camera.layers.disable(l);
+      carpickRaycaster.layers.disable(l);
+    });
+    layers.forEach((l) => {
+      camera.layers.enable(l);
+      carpickRaycaster.layers.enable(l);
+    });
   };
 
   function renderloop(T: number) {
@@ -416,7 +455,7 @@ export default function tInit(
           return {
             pos: c.pos,
             coord: covertToScreenPos(c.pos),
-            license: c.license,
+            license: c.userdata?.license,
           };
         })
         .filter((c) =>
@@ -437,17 +476,11 @@ export default function tInit(
     cancelAnimationFrame(animation);
   }
 
-  function onPullFitData<
-    T extends {
-      position: Vector3;
-      direction: Vector3;
-      speed: Vector3;
-      type?: CategoryId;
-      license?: string;
-    }
-  >(data: { [key: string]: T }) {
+  function onPullFitData<T extends carRawType<carDataType>>(data: {
+    [key: string]: T;
+  }) {
     if (!emulator) {
-      return (carMgr as carMap<T>).pushData(data);
+      return (carMgr as carMap<carDataType, T>).pushData(data);
     }
   }
 
