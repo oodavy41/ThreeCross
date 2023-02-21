@@ -1,0 +1,121 @@
+{
+  "asset": {
+    "gltfUpAxis": "Z",
+    "version": "0.0"
+  },
+  "geometricError": 1052.156005859375,
+  "root": {
+    "boundingVolume": {
+      "box": [
+        -2248847.0,
+        5021929.0,
+        3214672.75,
+        343.125,
+        0.0,
+        0.0,
+        0.0,
+        289.5,
+        0.0,
+        0.0,
+        0.0,
+        274.25
+      ]
+    },
+    "children": [
+      {
+        "boundingVolume": {
+          "box": [
+            -2248726.0,
+            5022066.0,
+            3214554.0,
+            194.25,
+            0.0,
+            0.0,
+            0.0,
+            152.25,
+            0.0,
+            0.0,
+            0.0,
+            139.5
+          ]
+        },
+        "content": {
+          "uri": "BlockXY/tileset.json"
+        },
+        "geometricError": 488.4846496582031,
+        "refine": "REPLACE"
+      },
+      {
+        "boundingVolume": {
+          "box": [
+            -2248683.0,
+            5021929.0,
+            3214813.5,
+            179.125,
+            0.0,
+            0.0,
+            0.0,
+            145.75,
+            0.0,
+            0.0,
+            0.0,
+            133.5
+          ]
+        },
+        "content": {
+          "uri": "BlockXB/tileset.json"
+        },
+        "geometricError": 439.8739013671875,
+        "refine": "REPLACE"
+      },
+      {
+        "boundingVolume": {
+          "box": [
+            -2249014.5,
+            5021935.0,
+            3214555.0,
+            175.625,
+            0.0,
+            0.0,
+            0.0,
+            155.0,
+            0.0,
+            0.0,
+            0.0,
+            156.5
+          ]
+        },
+        "content": {
+          "uri": "BlockAY/tileset.json"
+        },
+        "geometricError": 465.8078308105469,
+        "refine": "REPLACE"
+      },
+      {
+        "boundingVolume": {
+          "box": [
+            -2248981.25,
+            5021787.5,
+            3214811.5,
+            194.5,
+            0.0,
+            0.0,
+            0.0,
+            148.0,
+            0.0,
+            0.0,
+            0.0,
+            121.875
+          ]
+        },
+        "content": {
+          "uri": "BlockAB/tileset.json"
+        },
+        "geometricError": 448.9770812988281,
+        "refine": "REPLACE"
+      }
+    ],
+    "geometricError": 1052.156005859375,
+    "refine": "REPLACE"
+  }
+}

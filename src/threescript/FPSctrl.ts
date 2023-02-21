@@ -10,7 +10,7 @@ interface FPSctrlSettings {
   rotateSpeed?: number;
 }
 export default class FPSControl {
-  moveSpeed: number = 0.005;
+  moveSpeed: number = 0.05;
   rotateSpeed: number = 0.02;
   focus: boolean = false;
   camera: THREE.Camera;
@@ -44,20 +44,19 @@ export default class FPSControl {
   constructor(
     camera: THREE.Camera,
     dom: HTMLElement,
-    forward: THREE.Vector3,
+    forwardTarget: THREE.Vector3,
     settings?: FPSctrlSettings
   ) {
     this.moveSpeed = settings?.moveSpeed || this.moveSpeed;
     this.rotateSpeed = settings?.rotateSpeed || this.rotateSpeed;
     this.camera = camera;
     this.dom = dom;
-    // this.rotateY = this.camera.rotation.y;
     this.rotateY = this.camera.rotation.y + Math.PI / 2;
     this.rotateX = this.camera.rotation.x;
     // camera.lookAt(this.camera.position.clone().add(forward));
     camera.up = VEC_UP;
-    this.forward = forward;
-    this.right = this.forward.clone().cross(VEC_UP);
+    this.forward = forwardTarget.sub(camera.position).normalize();
+    this.right = this.forward.clone().cross(VEC_UP).normalize();
     this.keyEventBind();
     this.mouseEventBind();
   }
@@ -102,8 +101,6 @@ export default class FPSControl {
     ).normalize();
     this.right = this.forward.clone().cross(VEC_UP);
     this.camera.lookAt(this.camera.position.clone().add(this.forward));
-    // this.camera.rotation.set(this.rotateX, this.rotateY, 0);
-    // console.log(this.camera.rotation);
     this.camera.updateMatrixWorld();
   }
 

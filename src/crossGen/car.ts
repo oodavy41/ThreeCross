@@ -85,7 +85,12 @@ export class carPool implements carManager<void> {
     } else {
       let car = this.carPool[this.lastLiving + 1];
 
-      car.reset(from, to, speed, Math.floor(Math.random() * 22));
+      car.reset(
+        from,
+        to,
+        speed,
+        Math.floor((Math.random() * Object.keys(CategoryId).length) / 2)
+      );
       this.lastLiving++;
     }
   }
@@ -318,7 +323,12 @@ export class carTrail {
     this.carObj.position.set(100, 100, 100);
     // this.carObj.rotateY(Math.PI / 2);
     this.trailObj = new Line(new BufferGeometry(), new LineBasicMaterial());
-    this.reset(from, to, speed, Math.floor(Math.random() * 22));
+    this.reset(
+      from,
+      to,
+      speed,
+      Math.floor((Math.random() * Object.keys(CategoryId).length) / 2)
+    );
   }
 
   reset(from: lane, to: lane, speed: number, type: CategoryId = 21) {
@@ -368,7 +378,7 @@ export class carTrail {
     } else {
       this.carObj.visible = false;
     }
-    console.log("update cartrail", this.carObj.position, this.carObj.visible);
+    // console.log("update cartrail", this.carObj.position, this.carObj.visible);
     return this.living < this.lifeTime;
   }
 }

@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"3d-tiles-renderer@^0.3.16":
+  version "0.3.16"
+  resolved "https://registry.npmmirror.com/3d-tiles-renderer/-/3d-tiles-renderer-0.3.16.tgz#034bcfc84e5d59ea8191f6b95f21c468c105b614"
+  integrity sha512-wSEeIBS2/V/mh57dYpzMGTK4uRubMbwgg2XxBbklaLk92VnOLLQLSN9tYyqeOlwbwbp5Fbz7B6uu+2qLTBHxAg==
+
 "@ampproject/remapping@^2.1.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@ampproject/remapping/-/remapping-2.2.0.tgz#56c133824780de3174aed5ab6834f3026790154d"
@@ -1513,6 +1518,11 @@ inherits@2:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
+
+install@^0.13.0:
+  version "0.13.0"
+  resolved "https://registry.npmmirror.com/install/-/install-0.13.0.tgz#6af6e9da9dd0987de2ab420f78e60d9c17260776"
+  integrity sha512-zDml/jzr2PKU9I8J/xyZBQn8rPCAY//UOYNmR01XwNwyfhEWObo2SWfSl1+0tm1u6PhxLwDnfsT/6jB7OUxqFA==
 
 is-arrayish@^0.2.1:
   version "0.2.1"

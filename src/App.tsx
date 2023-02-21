@@ -11,6 +11,9 @@ function App() {
   useEffect(() => {
     if (container.current && !threeSet.current) {
       threeSet.current = tInit(container.current, {
+        tileUrl: "/terra_b3dms/tileset.json",
+        tileCenter: [114.1228453832, 30.4627878417, 12],
+        camProj: "perspective",
         emulator: true,
         fps: true,
       });

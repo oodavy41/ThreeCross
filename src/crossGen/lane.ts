@@ -272,6 +272,7 @@ export default class lane {
         depthWrite: false,
       })
     );
+    signObj.position.y += 0.001;
     return signObj;
   }
 

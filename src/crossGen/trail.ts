@@ -96,11 +96,11 @@ export default class trail {
 
     let ctrlPoints = [
       from.getPoint(RADIUS),
-      from.getPoint(from.parent.crossDistance!),
       from.getPoint(0),
+      from.getPoint(-from.parent.crossDistance!),
       midpoint,
+      to.getPoint(-to.parent.crossDistance!),
       to.getPoint(0),
-      to.getPoint(to.parent.crossDistance!),
       to.getPoint(RADIUS),
     ];
     let colorMap = [
@@ -123,13 +123,14 @@ export default class trail {
     });
 
     let trail = [
-      ...ctrlPoints.slice(0, 3),
-      ...new QuadraticBezierCurve3(
+      ...ctrlPoints.slice(0, 2),
+      ...new CubicBezierCurve3(
+        ctrlPoints[1],
         ctrlPoints[2],
-        ctrlPoints[3],
-        ctrlPoints[4]
+        ctrlPoints[4],
+        ctrlPoints[5]
       ).getPoints(20),
-      ...ctrlPoints.slice(4),
+      ...ctrlPoints.slice(5),
     ];
 
     this._trailLine = new CurvePath();
