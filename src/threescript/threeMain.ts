@@ -1,4 +1,3 @@
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import Stats from "stats.js";
 import * as THREE from "three";
 import { Vector2, Vector3 } from "three";
@@ -19,9 +18,8 @@ import {
   carModelType,
   targetTypes,
 } from "../crossGen/carModelTypes";
-import { TilesRenderer } from "3d-tiles-renderer";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { ecef2lla, lla2ecef } from "../utils/ECEConvert";
+import { northPtr } from "./objects";
+import tileLoader from "./tileLoader";
 
 export interface laneInfo {
   signType: laneForward;
@@ -37,6 +35,9 @@ export interface roadInfo {
 }
 
 export interface crossInfo {
+  tileUrl?: string;
+  tileCenter?: number[];
+
   roads: roadInfo[];
   cameraPos: Vector3;
   cameraLookAt: Vector3;
@@ -48,9 +49,6 @@ export interface crossInfo {
   turnerOffset?: number;
   roadStartOffset?: number;
   islandOffset?: number;
-  // center: Vector3;
-  // rotationY: number;
-  // scale: number;
 }
 
 interface CarLicenseNode {
@@ -71,8 +69,6 @@ const NEW_CAR_CHANCE = 0.05;
 const ORTH_CAM_DHEIGHT = 7;
 
 export interface mainConfig {
-  tileUrl?: string;
-  tileCenter?: number[];
   camProj?: "perspective" | "orthographic";
   emulator?: boolean;
   fps?: boolean;
@@ -84,13 +80,7 @@ export default function tInit<carDataType extends { license: string }>(
   carsHandler?: (data: CarLicenseNode[]) => void,
   carPicked?: (data: carDataType | undefined) => void
 ) {
-  let {
-    tileUrl,
-    tileCenter,
-    camProj = "orthographic",
-    emulator = false,
-    fps = false,
-  } = config;
+  let { camProj = "orthographic", emulator = false, fps = false } = config;
 
   let [cWidth, cHeight] = [container.clientWidth, container.clientHeight];
 
@@ -107,33 +97,6 @@ export default function tInit<carDataType extends { license: string }>(
       100
     );
   }
-  let northPtr = new THREE.Object3D();
-  let ptr = new THREE.Mesh(
-    new THREE.CylinderGeometry(0, 3, 10, 4),
-    new THREE.MeshBasicMaterial({ color: 0xff0000 })
-  );
-  ptr.position.z -= 5;
-  northPtr.add(ptr);
-  let ptr2 = new THREE.Mesh(
-    new THREE.CylinderGeometry(0, 3, 10, 4),
-    new THREE.MeshBasicMaterial({ color: 0x0000ff })
-  );
-  northPtr.add(ptr2);
-  ptr2.position.z += 5;
-
-  ptr.rotateX(-Math.PI / 2);
-  ptr2.rotateX(Math.PI / 2);
-  let northPtrScale = camProj === "perspective" ? 0.001 : 0.02;
-  northPtr.scale.set(northPtrScale, northPtrScale, northPtrScale);
-  let ptrPos =
-    camProj === "perspective"
-      ? new Vector3(0, -0.1, -0.3)
-      : new Vector3(0, -3, -3);
-
-  function updateNorthPtr() {
-    let newPos = ptrPos.clone().applyMatrix4(camera.matrixWorld);
-    northPtr.position.copy(newPos);
-  }
 
   let scene = new THREE.Scene();
   let renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -143,72 +106,7 @@ export default function tInit<carDataType extends { license: string }>(
   directLight.lookAt(-1, -1, -1);
   scene.add(directLight);
 
-  scene.add(northPtr);
-
-  let tileRender: TilesRenderer | undefined;
-  if (tileUrl && tileCenter) {
-    let draco = new DRACOLoader();
-    draco.setDecoderPath("/lib/draco/");
-    const loader = new GLTFLoader();
-    loader.setDRACOLoader(draco);
-
-    tileRender = new TilesRenderer(tileUrl);
-    tileRender.manager.addHandler(/\.gltf$/, loader);
-    tileRender.setCamera(camera);
-    tileRender.setResolutionFromRenderer(camera, renderer);
-    tileRender.errorTarget = 0.01;
-    tileRender.displayActiveTiles = true;
-    let loading = true;
-
-    let tileContainer = new THREE.Object3D();
-    tileContainer.add(tileRender.group);
-    scene.add(tileContainer);
-    // tileContainer.scale.set(1 / 1000000, 1 / 1000000, 1 / 1000000);
-    let lnglatCenter = tileCenter;
-    let ECEFCenter = lla2ecef(
-      lnglatCenter[1],
-      lnglatCenter[0],
-      lnglatCenter[2]
-    );
-    let center = new THREE.Vector3(...ECEFCenter);
-
-    tileRender.onLoadTileSet = (tile) => {
-      if (loading) {
-        let lnglat = ecef2lla(center.x, center.y, center.z);
-        console.log(lnglat);
-
-        let targetHelper = new THREE.Object3D();
-        targetHelper.position.set(center.x, center.y, center.z);
-        tileRender?.group.add(targetHelper);
-
-        tileContainer.rotateOnWorldAxis(
-          new THREE.Vector3(0, 0, 1),
-          (-(lnglat[1] - 90) / 180) * Math.PI
-        );
-        tileContainer.rotateOnWorldAxis(
-          new THREE.Vector3(1, 0, 0),
-          (-lnglat[0] / 180) * Math.PI
-        );
-        tileContainer.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), Math.PI);
-        let scale = 0.1;
-        tileContainer.scale.set(scale, scale, scale);
-
-        tileContainer.updateMatrixWorld();
-
-        let targetWorldPos = targetHelper.getWorldPosition(new THREE.Vector3());
-        tileContainer.position.set(
-          -targetWorldPos.x,
-          -targetWorldPos.y,
-          -targetWorldPos.z
-        );
-        tileContainer.updateMatrixWorld();
-
-        console.log(targetWorldPos);
-
-        loading = false;
-      }
-    };
-  }
+  let northPtrObj = northPtr(camera, scene, camProj);
 
   // let gasStation = new THREE.Mesh(
   // //   new THREE.BoxGeometry(1, 1, 1),
@@ -318,7 +216,9 @@ export default function tInit<carDataType extends { license: string }>(
     };
   })();
 
-  let crossComp: cross, carMgr: carManager<carDataType>;
+  let crossComp: cross,
+    carMgr: carManager<carDataType>,
+    tileObj: ReturnType<typeof tileLoader> | undefined;
 
   let onChangeRoadinfo = (info: crossInfo) => {
     if (crossComp) {
@@ -327,8 +227,18 @@ export default function tInit<carDataType extends { license: string }>(
     const { roads } = info;
     crossComp = new cross(roads, info);
     scene.add(crossComp.genThreeObj(info));
-    if (tileUrl) {
+    if (info.tileUrl && info.tileCenter) {
       crossComp.threeObj!.visible = false;
+      if (tileObj) {
+        tileObj.dispose();
+      }
+      tileObj = tileLoader(
+        camera,
+        renderer,
+        scene,
+        info.tileUrl,
+        info.tileCenter
+      );
     }
     if (emulator) {
       carMgr = new carPool(NEW_CAR_CHANCE, 100, crossComp);
@@ -340,164 +250,19 @@ export default function tInit<carDataType extends { license: string }>(
     camera.lookAt(info.cameraLookAt);
   };
 
-  onChangeRoadinfo({
-    walkCrossWidth: 0.6,
-    cameraPos: new Vector3(0, 10, 0),
-    cameraLookAt: new Vector3(0, -9, 0),
-    rightLaneType: "divided",
-    turnerWidth: 0.75,
-    turnerLaneWidth: 0.3,
-    turnerOffset: 5,
+  // onChangeRoadinfo({
+  //   walkCrossWidth: 0.6,
+  //   cameraPos: new Vector3(0, 10, 0),
+  //   cameraLookAt: new Vector3(0, -9, 0),
+  //   rightLaneType: "divided",
+  //   turnerWidth: 0.75,
+  //   turnerLaneWidth: 0.3,
+  //   turnerOffset: 5,
 
-    islandOffset: 0.5,
-    roadStartOffset: -0.03,
-    roads: [
-      {
-        direction: new Vector3(-0.9040036576791641, 0, 0.4275247208088586),
-        lanes: [
-          {
-            signType: laneForward.turnerAway,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.31,
-          },
-
-          {
-            signType: laneForward.away,
-            width: 0.31,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.31,
-          },
-          {
-            signType: laneForward.gelidai,
-            width: 0.27,
-            startOffset: 1.3,
-          },
-          {
-            signType: laneForward.zuozhuan,
-            width: 0.31,
-          },
-
-          {
-            signType: laneForward.zhixing,
-            width: 0.31,
-          },
-          {
-            signType: laneForward.zhixing,
-            width: 0.31,
-          },
-          {
-            signType: laneForward.turnerRight,
-            width: 0.3,
-          },
-        ],
-      },
-      {
-        direction: new Vector3(0.5299863272000847, 0, 0.8480061868765845),
-        lanes: [
-          {
-            signType: laneForward.away,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.zuozhuan,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.zhixing,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.zhixing,
-            width: 0.3,
-          },
-        ],
-      },
-      {
-        direction: new Vector3(0.9040036576791641, 0, -0.4275247208088586),
-        lanes: [
-          {
-            signType: laneForward.turnerAway,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.31,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.31,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.31,
-          },
-          {
-            signType: laneForward.gelidai,
-            width: 0.27,
-            startOffset: 1.0,
-          },
-          {
-            signType: laneForward.zuozhuan,
-            width: 0.31,
-          },
-          {
-            signType: laneForward.zhixing,
-            width: 0.31,
-          },
-          {
-            signType: laneForward.zhixing,
-            width: 0.31,
-          },
-          {
-            signType: laneForward.turnerRight,
-            width: 0.3,
-          },
-        ],
-      },
-      {
-        direction: new Vector3(-0.5299863272000847, 0, -0.8480061868765845),
-        lanes: [
-          {
-            signType: laneForward.away,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.away,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.zuozhuan,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.zhixing,
-            width: 0.3,
-          },
-          {
-            signType: laneForward.zhixing,
-            width: 0.3,
-          },
-        ],
-      },
-    ],
-  });
+  //   islandOffset: 0.5,
+  //   roadStartOffset: -0.03,
+  //   roads: [],
+  // });
 
   const carpickRaycaster = new THREE.Raycaster();
   if (!(fps || emulator) && carPicked) {
@@ -552,32 +317,30 @@ export default function tInit<carDataType extends { license: string }>(
 
     CamFpsCtrl && CamFpsCtrl.update(delta);
 
-    let cars = carMgr.update(delta);
-
-    if (carsHandler) {
-      let carList: CarLicenseNode[] = cars
-        .filter((c) => {
-          return camera.layers.test(c.layers);
-        })
-        .map((c) => {
-          return {
-            pos: c.pos,
-            coord: covertToScreenPos(c.pos),
-            license: c.userdata?.license,
-          };
-        })
-        .filter((c) =>
-          camProj === "perspective" ? c.coord.z > 0 && c.coord.z < 1 : true
-        );
-      carsHandler(carList);
+    if (carMgr) {
+      let cars = carMgr.update(delta);
+      if (carsHandler) {
+        let carList: CarLicenseNode[] = cars
+          .filter((c) => {
+            return camera.layers.test(c.layers);
+          })
+          .map((c) => {
+            return {
+              pos: c.pos,
+              coord: covertToScreenPos(c.pos),
+              license: c.userdata?.license,
+            };
+          })
+          .filter((c) =>
+            camProj === "perspective" ? c.coord.z > 0 && c.coord.z < 1 : true
+          );
+        carsHandler(carList);
+      }
     }
 
-    updateNorthPtr();
+    northPtrObj && northPtrObj.updateNorthPtr();
 
-    if (tileRender) {
-      camera.updateMatrixWorld();
-      tileRender.update();
-    }
+    tileObj && tileObj.update();
 
     composer.render();
     stats && stats.end();

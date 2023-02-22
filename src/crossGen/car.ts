@@ -314,12 +314,17 @@ export class carTrail {
   constructor(from: lane, to: lane, speed: number) {
     console.log("new cartrail");
     this.trail = new trail(from, to);
-    // this.carObj = new Object3D();
+    this.carObj = new Object3D();
+    // this.carObj = new Mesh(
+    //   new BoxGeometry(),
+    //   new MeshBasicMaterial({
+    //     color: 0x00f,
+    //     opacity: 0.3,
+    //     transparent: true,
+    //     depthWrite: false,
+    //   })
+    // );
 
-    this.carObj = new Mesh(
-      new BoxGeometry(),
-      new MeshBasicMaterial({ color: 0xff0000 })
-    );
     this.carObj.position.set(100, 100, 100);
     // this.carObj.rotateY(Math.PI / 2);
     this.trailObj = new Line(new BufferGeometry(), new LineBasicMaterial());
@@ -355,7 +360,6 @@ export class carTrail {
 
     this.living = 0;
     this.carObj.clear();
-    this.carObj = new Object3D();
     this.carObj.position.set(100, 100, 100);
     this.type = type;
     if (carModelClass) {

@@ -10,7 +10,7 @@ interface FPSctrlSettings {
   rotateSpeed?: number;
 }
 export default class FPSControl {
-  moveSpeed: number = 0.05;
+  moveSpeed: number = 0.005;
   rotateSpeed: number = 0.02;
   focus: boolean = false;
   camera: THREE.Camera;
