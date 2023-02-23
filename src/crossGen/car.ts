@@ -284,7 +284,7 @@ export class car<UserDataType> {
     this.carObj.position.copy(pos);
     this.carObj.lookAt(pos.clone().add(dir));
     this.speed.copy(speed);
-    if (type && this.type !== type && carModelClass) {
+    if (type !== undefined && this.type !== type && carModelClass) {
       this.carObj.children = [];
       this.carObj.add(new carModelClass(type));
       this.carObj.layers.set(targetTypes.get(type));

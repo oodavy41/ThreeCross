@@ -9,8 +9,7 @@ export default function tileLoader(
   camera: THREE.Camera,
   renderer: THREE.WebGLRenderer,
   parent: THREE.Object3D,
-  tileUrl: string,
-  tileCenter: number[]
+  tileUrl: string
 ) {
   let draco = new DRACOLoader();
   draco.setDecoderPath("/lib/draco/");
@@ -29,12 +28,26 @@ export default function tileLoader(
   tileContainer.add(tileRender.group);
   parent.add(tileContainer);
   // tileContainer.scale.set(1 / 1000000, 1 / 1000000, 1 / 1000000);
-  let lnglatCenter = tileCenter;
-  let ECEFCenter = lla2ecef(lnglatCenter[1], lnglatCenter[0], lnglatCenter[2]);
-  let center = new THREE.Vector3(...ECEFCenter);
 
   tileRender.onLoadTileSet = (tile) => {
     if (loading) {
+      if (!tile.root.boundingVolume.box) {
+        console.log("Tile Not Sete Center", "require tileset.json box");
+        return;
+      }
+      let tileCenter = tile.root.boundingVolume.box.slice(0, 3);
+      let tileHeight = ecef2lla(tileCenter[0], tileCenter[1], tileCenter[2])[2];
+      if (!(tile.extras?.center || tile.extras?.scale)) {
+        console.log("Tile Not have Center | Scale", "in tileset.json extras");
+        return;
+      }
+      let { center: lnglatCenter, scale } = tile.extras!;
+      let ECEFCenter = lla2ecef(lnglatCenter[0], lnglatCenter[1], tileHeight);
+      let center = new THREE.Vector3(
+        ECEFCenter[0],
+        ECEFCenter[1],
+        ECEFCenter[2]
+      );
       let lnglat = ecef2lla(center.x, center.y, center.z);
       console.log(lnglat);
 
@@ -42,17 +55,17 @@ export default function tileLoader(
       targetHelper.position.set(center.x, center.y, center.z);
       tileRender?.group.add(targetHelper);
 
-      tileContainer.rotateOnWorldAxis(
+      tileRender?.group.rotateOnWorldAxis(
         new THREE.Vector3(0, 0, 1),
         (-(lnglat[1] - 90) / 180) * Math.PI
       );
-      tileContainer.rotateOnWorldAxis(
+      tileRender?.group.rotateOnWorldAxis(
         new THREE.Vector3(1, 0, 0),
         (-lnglat[0] / 180) * Math.PI
       );
-      tileContainer.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), Math.PI);
-      let scale = 0.1;
-      tileContainer.scale.set(scale, scale, scale);
+      tileRender?.group.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), Math.PI);
+
+      tileContainer.scale.set(scale[0], 1, scale[1]);
 
       tileContainer.updateMatrixWorld();
 

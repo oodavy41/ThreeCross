@@ -19,7 +19,6 @@ function App() {
       });
       threeSet.current?.handlers.onChangeRoadinfo({
         tileUrl: "/terra_b3dms/tileset.json",
-        tileCenter: [114.1228453832, 30.4627878417, 12],
         walkCrossWidth: 0.6,
         cameraPos: new Vector3(0, 10, 0),
         cameraLookAt: new Vector3(0, -9, 0),

@@ -36,7 +36,6 @@ export interface roadInfo {
 
 export interface crossInfo {
   tileUrl?: string;
-  tileCenter?: number[];
 
   roads: roadInfo[];
   cameraPos: Vector3;
@@ -227,18 +226,12 @@ export default function tInit<carDataType extends { license: string }>(
     const { roads } = info;
     crossComp = new cross(roads, info);
     scene.add(crossComp.genThreeObj(info));
-    if (info.tileUrl && info.tileCenter) {
+    if (info.tileUrl) {
       crossComp.threeObj!.visible = false;
       if (tileObj) {
         tileObj.dispose();
       }
-      tileObj = tileLoader(
-        camera,
-        renderer,
-        scene,
-        info.tileUrl,
-        info.tileCenter
-      );
+      tileObj = tileLoader(camera, renderer, scene, info.tileUrl);
     }
     if (emulator) {
       carMgr = new carPool(NEW_CAR_CHANCE, 100, crossComp);
