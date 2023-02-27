@@ -65,7 +65,7 @@ export default function tileLoader(
       );
       tileRender?.group.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), Math.PI);
 
-      tileContainer.scale.set(scale[0], 1, scale[1]);
+      tileContainer.scale.set(scale[0], 0.1, scale[1]);
 
       tileContainer.updateMatrixWorld();
 

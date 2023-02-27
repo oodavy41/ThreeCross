@@ -25,10 +25,10 @@ const modelMap: (
   carModelType.getUrl("lp_motorcycle"), //"MOTORCYCLE" = 5,
   carModelType.getUrl("lp_bicycle"), //"BICYCLE" = 6,
   carModelType.getUrl("lp_tricycle"), //"TRICYCLE" = 7,
-  { w: 0.2, h: 2, l: 0.2, color: "blue" }, //"PEDESTRIAN" = 8,
+  { w: 0.3, h: 2, l: 0.3, color: "green" }, //"PEDESTRIAN" = 8,
   { w: 1, h: 1, l: 1, color: "green" }, //"TRAFFIC_CONE" = 9,
   { w: 1, h: 1, l: 1, color: "red" }, //"DONT_CARE" = 10,
-  { w: 0.1, h: 0.1, l: 0.1, color: "blue" }, //"LICENSE_PLATE" = 11,
+  { w: 0.2, h: 0.2, l: 0.2, color: "blue" }, //"LICENSE_PLATE" = 11,
   carModelType.getUrl("lp_truck"), //"TANKER" = 12,
   carModelType.getUrl("lp_truck"), //"CEMENT_MIXER" = 13,
   carModelType.getUrl("lp_car"), //"TAXI" = 14,
@@ -37,6 +37,10 @@ const modelMap: (
   carModelType.getUrl("lp_truck"), //"ENGINEERING_VEHICLE" = 17,
   carModelType.getUrl("lp_truck"), //"MUCK_TRUCK" = 18,
   carModelType.getUrl("lp_truck"), //"TRUCK_TRAILER" = 19,
+  { w: 1, h: 1, l: 1, color: "yellow" }, // "SPECIAL" = 20,
+  { w: 0.3, h: 2, l: 0.3, color: "yellow" }, //"CYCLIST" = 21,
+  { w: 0.2, h: 0.2, l: 0.2, color: "green" }, //"TRAFFIC_LIGHT" = 22,
+  { w: 0.2, h: 0.2, l: 0.2, color: "red" }, //"HAZARDOUS_LIGHT" = 23,
 ];
 
 modelMap[1000] = { w: 2, h: 1.5, l: 4, color: "white", opacity: 0.2 };

@@ -132,11 +132,16 @@ export default class road {
         // nextRoad.intersectRight?.clone() ||
         intersectPoint(this.getRay("left"), nextRoad.getRay("right"));
 
-    this.crossDistance = [this.intersectRight, this.intersectLeft]
+    let distances = [this.intersectRight, this.intersectLeft]
       .map((value) =>
         this.direction?.clone().dot(value?.clone().sub(new Vector3(0, 0, 0))!)
       )
-      .sort()[1];
+      .sort();
+    if (distances[1] / distances[0] > 5) {
+      this.crossDistance = this.width * 0.5;
+    } else {
+      this.crossDistance = distances[1];
+    }
 
     [
       this.borderRight,

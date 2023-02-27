@@ -19,6 +19,10 @@ export enum CategoryId {
   "ENGINEERING_VEHICLE" = 17,
   "MUCK_TRUCK" = 18,
   "TRUCK_TRAILER" = 19,
+  "SPECIAL" = 20,
+  "CYCLIST" = 21,
+  "TRAFFIC_LIGHT" = 22,
+  "HAZARDOUS_LIGHT" = 23,
 }
 
 export const CategoryName = [
@@ -42,6 +46,10 @@ export const CategoryName = [
   "ENGINEERING_VEHICLE", // l
   "MUCK_TRUCK", // l
   "TRUCK_TRAILER", // l
+  "SPECIAL", // l
+  "CYCLIST", // h
+  "TRAFFIC_LIGHT", // o
+  "HAZARDOUS_LIGHT", // o
 ];
 
 export const modelUrls = {
@@ -94,6 +102,10 @@ namespace targetTypes {
       "l",
       "l",
       "l",
+      "l",
+      "h",
+      "o",
+      "o",
     ];
     switch (typeMapper[id]) {
       case "s":
